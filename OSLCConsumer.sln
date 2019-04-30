@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JazzOSLCManager", "ClassLib
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{316CA895-F7E8-45E2-8F41-CD07866DB0DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JazzOSLCReqManager", "JazzOSLCReqManager\JazzOSLCReqManager.csproj", "{1CF2D62B-4396-44EE-B094-18E9BEDC77F1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{316CA895-F7E8-45E2-8F41-CD07866DB0DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{316CA895-F7E8-45E2-8F41-CD07866DB0DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{316CA895-F7E8-45E2-8F41-CD07866DB0DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CF2D62B-4396-44EE-B094-18E9BEDC77F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CF2D62B-4396-44EE-B094-18E9BEDC77F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CF2D62B-4396-44EE-B094-18E9BEDC77F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CF2D62B-4396-44EE-B094-18E9BEDC77F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
