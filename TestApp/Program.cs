@@ -11,8 +11,11 @@ namespace TestApp
     {
         static void Main(string[] args)
         {
-            OSLCManager man = new OSLCManager("https://158.196.141.113/rm/", "", "", "", "");
+            OSLCManager man = new OSLCManager("https://158.196.141.113/rm/", "", "fhanslik", "fhanslik", "");
             Console.WriteLine(man.GetServiceProviderCatalog());
+            Console.WriteLine("nn");
+            Console.ReadKey();
+            
         }
     }
 }

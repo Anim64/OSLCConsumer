@@ -20,7 +20,6 @@ namespace JazzOSLCReqManager
         public string Login { get; }
         public string Password { get; }
         public string ProjectName { get; set; }
-
         public float Version { get; }
         public HttpClient HttpClient { get; }
 
@@ -32,7 +31,6 @@ namespace JazzOSLCReqManager
             this.Password = password;
             this.ProjectName = projectName;
             this.Version = version;
-
 
             ServicePointManager
                 .ServerCertificateValidationCallback +=
@@ -83,8 +81,8 @@ namespace JazzOSLCReqManager
             HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
 
-            HttpResponseMessage response = HttpUtils.GetWebDocument(rootServices ,this.JtsServer, this.Login, this.Password, this.HttpClient);
-            
+            //HttpResponseMessage response = HttpUtils.GetWebDocument(rootServices ,this.JtsServer, this.Login, this.Password, this.HttpClient);
+            HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(rootServices, this.Login, this.Password, this.HttpClient, this.JtsServer);
 
             try
             {
@@ -111,6 +109,8 @@ namespace JazzOSLCReqManager
 
 
         }
+
+        
 
 
 
