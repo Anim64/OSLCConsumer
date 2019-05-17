@@ -53,18 +53,8 @@ namespace JazzOSLCReqManager.Utils
             return null;
         }
 
+        private static Boolean doRRCOAuth(HttpResponseMessage documentResponse,string login,string password,HttpClient httpClient){
 
-        public static HttpResponseMessage sendGetForSecureDocument(string RequestUri, string login, string password, HttpClient httpClient, string JtsUri)
-        {
-
-            if (DEBUG) Console.WriteLine(">> GET(1) " + RequestUri);
-            HttpResponseMessage documentResponse = httpClient.GetAsync(RequestUri).Result;
-
-            if (DEBUG)
-            {
-                Console.WriteLine(">> Response Headers:");
-                HttpUtils.printResponseHeaders(documentResponse);
-            }
             if (documentResponse.StatusCode == HttpStatusCode.OK)
             {
                 var header = documentResponse.Headers.TryGetValues(AUTHREQUIRED, out var values) ? values.FirstOrDefault() : null;
@@ -80,12 +70,13 @@ namespace JazzOSLCReqManager.Utils
                     formVariables.Add(new KeyValuePair<string, string>("j_password", password));
                     var formContent = new FormUrlEncodedContent(formVariables);
 
-                    //HttpResponseMessage formPost = httpClient.PostAsync("/j_security_check", formContent).Result;
                     HttpResponseMessage formPost = httpClient.PostAsync("/jts/auth/j_security_check", formContent).Result;
 
-                    if (DEBUG) Console.WriteLine(">> POST " + formPost.RequestMessage.RequestUri);
+                    if (DEBUG) 
+                        Console.WriteLine(">> POST " + formPost.RequestMessage.RequestUri);
                     HttpRequestMessage formResponse = formPost.RequestMessage;
-                    if (DEBUG) HttpUtils.printResponseHeaders(formPost);
+                    if (DEBUG) 
+                        HttpUtils.printResponseHeaders(formPost);
 
                     header = formResponse.Headers.TryGetValues(AUTHREQUIRED, out values) ? values.FirstOrDefault() : null;
                     if ((header != null) && header.Equals(FORM_AUTH_FAILED_MSG))
@@ -97,22 +88,64 @@ namespace JazzOSLCReqManager.Utils
                     {
                         formResponse.Dispose();
                         // The login succeed
-                        // Step (3): Request again the protected resource
-                        if (DEBUG) Console.WriteLine(">> GET(2) " + RequestUri);
-                        return httpClient.GetAsync(RequestUri).Result;
+                        return true;
                     }
                 }
+                else
+                    return true;
             }
+
+            return false;
+
+        }
+
+
+        public static HttpResponseMessage sendGetForSecureDocument(string RequestUri, string login, string password, HttpClient httpClient, string JtsUri)
+        {
+
+            if (DEBUG) 
+                Console.WriteLine(">> GET(1) " + RequestUri);
+            HttpResponseMessage documentResponse = httpClient.GetAsync(RequestUri).Result;
+
+            if (DEBUG)
+            {
+                Console.WriteLine(">> Response Headers:");
+                HttpUtils.printResponseHeaders(documentResponse);
+            }
+
+            Boolean loginResult = doRRCOAuth(documentResponse,login,password,httpClient);
+            if(loginResult){
+                if (DEBUG) 
+                    Console.WriteLine(">> GET(2) " + RequestUri);
+                return httpClient.GetAsync(RequestUri).Result;
+               }
+            else
+                if (DEBUG) 
+                    Console.WriteLine("Somethign went wrong during Authentication");
+            
             return documentResponse;
         }
 
-   /*    public static HttpResponseMessage sendPostForSecureDocument(string requestURI,string login,string password,HttpClient httpClient){
-            var formVariables = new List<KeyValuePair<string, string>>();
-                    formVariables.Add(new KeyValuePair<string, string>("j_username", login));
-                    formVariables.Add(new KeyValuePair<string, string>("j_password", password));
-                    var formContent = new FormUrlEncodedContent(formVariables);
-            httpClient.PostAsync(requestURI,formVariables);
-}*/
+       public static HttpResponseMessage sendPostForSecureDocument(string requestURI,string login,string password,
+           HttpClient httpClient,HttpContent ValuesToSend,int expectedResponse){
+           if(DEBUG)
+                Console.WriteLine(">> Post(1) " + requestURI);
+           HttpResponseMessage response = httpClient.PostAsync(requestURI,ValuesToSend).Result;
+
+            if(DEBUG){
+                Console.WriteLine(">> Response Headers:");
+			    HttpUtils.printResponseHeaders(response);
+            }
+
+
+            if((int)response.StatusCode != expectedResponse){
+                Console.WriteLine("Error occured during Post method");
+                response.Dispose();
+            }
+            return response;
+            
+
+        }
 
     }
 }

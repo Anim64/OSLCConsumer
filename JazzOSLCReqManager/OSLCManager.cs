@@ -24,6 +24,11 @@ namespace JazzOSLCReqManager
         public string ProjectName { get; set; }
         public float Version { get; }
         public HttpClient HttpClient { get; }
+        private static XNamespace xpath = "http://open-services.net/xmlns/rm/1.0/";
+        private Dictionary<string,XNamespace> namespaces;
+
+
+        
 
         public OSLCManager(string server, string jtsServer, string login, string password, string projectName, float version = 3.0f)
         {
@@ -33,6 +38,11 @@ namespace JazzOSLCReqManager
             this.Password = password;
             this.ProjectName = projectName;
             this.Version = version;
+            this.namespaces = new Dictionary<string, XNamespace>();
+            this.namespaces.Add("oslc_rm","http://open-services.net/xmlns/rm/1.0/");
+            this.namespaces.Add("oslc","http://open-services.net/ns/core#");
+            this.namespaces.Add("dcterms","http://purl.org/dc/terms/");
+            this.namespaces.Add("rdf","http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 
             ServicePointManager
                 .ServerCertificateValidationCallback +=
@@ -40,50 +50,15 @@ namespace JazzOSLCReqManager
 
             this.HttpClient = new HttpClient();
             this.HttpClient.BaseAddress = new Uri(server);
-
-           
-                
-
-
-
-
-                /*using (var handler = new HttpClientHandler() { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate })
-                {
-
-                    handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-                    handler.ServerCertificateCustomValidationCallback =
-                        (httpRequestMessage, cert, cetChain, policyErrors) =>
-                        {
-                            return true;
-                        };
-                    using (var client = new HttpClient(handler))
-                    {
-                        /*ServicePointManager.ServerCertificateValidationCallback =
-                        delegate (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-                        {
-                            return true;
-                        };
-                        client.BaseAddress = new Uri("https://158.196.141.113/rm/");
-                        client.DefaultRequestHeaders.Accept.Clear();
-                        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf + xml"));
-                        httpclient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
-
-                        HttpResponseMessage response = client.GetAsync("rootservices").Result;
-                        response.EnsureSuccessStatusCode();
-                        string result = response.Content.ReadAsStringAsync().Result;
-                        Console.WriteLine("Result: " + result);
-                    }
-                }*/
         }
 
         public string GetServiceProviderCatalog()
         {
             string rootServices = "rootservices";
             this.HttpClient.DefaultRequestHeaders.Clear();
-            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
 
-            //HttpResponseMessage response = HttpUtils.GetWebDocument(rootServices ,this.JtsServer, this.Login, this.Password, this.HttpClient);
             HttpResponseMessage response = HttpUtils.sendGetForSecureDocument("rm/"+rootServices, this.Login, this.Password, this.HttpClient, this.JtsServer);
             
             try
@@ -97,12 +72,10 @@ namespace JazzOSLCReqManager
             }
 
             XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+           
             
-            
-            XNamespace xpath = "http://open-services.net/xmlns/rm/1.0/";
             //XName
-            string attribute = xDoc.Root.Element(xpath + "rmServiceProviders").FirstAttribute.Value;
-            //var list = xDoc.Descendants(xpath + "rmServiceProviders");
+            string attribute = xDoc.Root.Element(namespaces["oslc_rm"] + "rmServiceProviders").FirstAttribute.Value;
 
 
 
@@ -113,9 +86,9 @@ namespace JazzOSLCReqManager
 
         }
 
-        public string getServiceProviders(string catalogURI){
+        public Dictionary<string,string> getServiceProviders(string catalogURI){
             this.HttpClient.DefaultRequestHeaders.Clear();
-            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
 
             HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(catalogURI,this.Login,this.Password,this.HttpClient,this.JtsServer);
@@ -130,42 +103,32 @@ namespace JazzOSLCReqManager
             }
             
             
-
+                XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
             
-                XPathDocument doc = new XPathDocument(response.Content.ReadAsStreamAsync().Result);
-                XPathNavigator nav = doc.CreateNavigator();
-                XmlNamespaceManager manager = new XmlNamespaceManager(nav.NameTable);
-                manager.AddNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-                manager.AddNamespace("oslc_rm", "http://open-services.net/xmlns/rm/1.0/");
-                XPathNodeIterator iterator = nav.Select("/rdf:Description/oslc_rm:rmServiceProviders/@rdf:resource", manager);
-                nav = doc.CreateNavigator();
-                manager = new XmlNamespaceManager(nav.NameTable);
-                manager.AddNamespace("oslc", "http://open-services.net/ns/core#");
-                manager.AddNamespace("dcterms", "http://purl.org/dc/terms/");
-                iterator = nav.Select("//oslc:ServiceProvider/dcterms:title", manager);
-                Console.WriteLine("The Project Areas for this RM Server are:");
-                bool fetched = false;
-                while (iterator.MoveNext())
-                {
-                    fetched = true;
-                    XPathNavigator nav2 = iterator.Current.Clone();
-                    Console.WriteLine(nav2.Value);
+                
+                var nodes = xDoc.Descendants(namespaces["dcterms"]+"title");
+                Dictionary <string,string> projectAreas = new Dictionary<string, string>();
+                if(nodes != null)
+                    foreach (var node in nodes){
+                    projectAreas.Add(node.Value,node.Parent.FirstAttribute.Value);
+                    }
+                else{
+                    Console.WriteLine("No project areas found");
+                    return null;
                 }
-                if(!fetched)
-                    Console.WriteLine("--No Project Areas Found--");
-            
+                    
 
 
-            
 
-            return "test";
+
+            return projectAreas;
 
 
         }
 
          public string getServiceProvider(string catalogURI,String paName){
             this.HttpClient.DefaultRequestHeaders.Clear();
-            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
 
             HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(catalogURI,this.Login,this.Password,this.HttpClient,this.JtsServer);
@@ -179,37 +142,14 @@ namespace JazzOSLCReqManager
                 response.Dispose();
             }
             
-            
+                XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+                
+                string attribute = xDoc.Descendants(namespaces["dcterms"]+"title").FirstOrDefault(p => p.Value == paName).Parent.FirstAttribute.Value;
 
-            
-                XPathDocument doc = new XPathDocument(response.Content.ReadAsStreamAsync().Result);
-                XPathNavigator nav = doc.CreateNavigator();
-                XmlNamespaceManager manager = new XmlNamespaceManager(nav.NameTable);
-                manager.AddNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-                manager.AddNamespace("oslc_rm", "http://open-services.net/xmlns/rm/1.0/");
-                XPathNodeIterator iterator = nav.Select("/rdf:Description/oslc_rm:rmServiceProviders/@rdf:resource", manager);
-                nav = doc.CreateNavigator();
-                manager = new XmlNamespaceManager(nav.NameTable);
-                manager.AddNamespace("oslc", "http://open-services.net/ns/core#");
-                manager.AddNamespace("dcterms", "http://purl.org/dc/terms/");
-                iterator = nav.Select("//oslc:ServiceProvider/dcterms:title", manager);
-                bool fetched = false;
-                while (iterator.MoveNext())
-                {
-                    fetched = true;
-                    XPathNavigator nav2 = iterator.Current.Clone();
-                    if (nav2.Value == paName)
-                        return nav2.Value;
-                }
-                if(!fetched){
-                    Console.WriteLine("--No Project Areas Found--");
-                }
-            
+             
 
-
-            
-
-            return "null";
+   
+            return attribute;
 
 
         }
