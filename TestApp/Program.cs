@@ -12,12 +12,13 @@ namespace TestApp
         static void Main(string[] args)
         {
             string projectArea = "Test project";
-            OSLCManager man = new OSLCManager("https://158.196.141.113/", "", "fhanslik", "fhanslik", "");
-            string providerCatalog = man.GetServiceProviderCatalog();
+            RequirementHandler rqH = new RequirementHandler("https://158.196.141.113/", "", "fhanslik", "fhanslik", projectArea);
+            rqH.CreateRequirement();
+            /*string providerCatalog = man.GetServiceProviderCatalog();
             Console.WriteLine(providerCatalog);
             //get single Project Area
             string serviceProvider = man.getServiceProvider(providerCatalog,projectArea);
-            Console.WriteLine(serviceProvider);
+            Console.WriteLine(serviceProvider);*/
             //Write all available project areas
             /*Dictionary<string,string> serviceProviders = man.getServiceProviders(providerCatalog);
             foreach(KeyValuePair<string,string> singleProvider in serviceProviders){
