@@ -57,22 +57,6 @@ namespace JazzOSLCReqManager.Utils
         public static HttpResponseMessage sendGetForSecureDocument(string RequestUri, string login, string password, HttpClient httpClient, string JtsUri)
         {
 
-            //HttpResponseMessage docGet2 = httpClient.GetAsync(RequestUri).Result;
-
-            //if (request.Headers.Count() > 0)
-            //{
-            //    foreach (KeyValuePair<string, IEnumerable<string>> key in request.Headers)
-            //    {
-            //        try
-            //        {
-            //            docGet2.Headers.Add(key.Key, key.Value);
-            //        }
-            //        catch (ArgumentException)
-            //        {
-
-            //        }
-            //    }
-            //}
             if (DEBUG) Console.WriteLine(">> GET(1) " + RequestUri);
             HttpResponseMessage documentResponse = httpClient.GetAsync(RequestUri).Result;
 
@@ -85,9 +69,9 @@ namespace JazzOSLCReqManager.Utils
             {
                 var header = documentResponse.Headers.TryGetValues(AUTHREQUIRED, out var values) ? values.FirstOrDefault() : null;
 
-
+                
                 //string header = documentResponse.Headers[AUTHREQUIRED];
-                if ((header != null) && header.Equals("authrequired"))
+                if ((header != null) && header.Equals(FORM_AUTH_REQUIRED_MSG))
                 {
                     documentResponse.Dispose();
 
@@ -97,14 +81,14 @@ namespace JazzOSLCReqManager.Utils
                     var formContent = new FormUrlEncodedContent(formVariables);
 
                     //HttpResponseMessage formPost = httpClient.PostAsync("/j_security_check", formContent).Result;
-                    HttpResponseMessage formPost = httpClient.PostAsync("/jts/auth/authrequired", formContent).Result;
+                    HttpResponseMessage formPost = httpClient.PostAsync("/jts/auth/j_security_check", formContent).Result;
 
                     if (DEBUG) Console.WriteLine(">> POST " + formPost.RequestMessage.RequestUri);
                     HttpRequestMessage formResponse = formPost.RequestMessage;
                     if (DEBUG) HttpUtils.printResponseHeaders(formPost);
 
                     header = formResponse.Headers.TryGetValues(AUTHREQUIRED, out values) ? values.FirstOrDefault() : null;
-                    if ((header != null) && header.Equals("authfailed"))
+                    if ((header != null) && header.Equals(FORM_AUTH_FAILED_MSG))
                     {
                         // The login failed
                         throw new WebException("Authentication failed");
@@ -121,6 +105,14 @@ namespace JazzOSLCReqManager.Utils
             }
             return documentResponse;
         }
+
+   /*    public static HttpResponseMessage sendPostForSecureDocument(string requestURI,string login,string password,HttpClient httpClient){
+            var formVariables = new List<KeyValuePair<string, string>>();
+                    formVariables.Add(new KeyValuePair<string, string>("j_username", login));
+                    formVariables.Add(new KeyValuePair<string, string>("j_password", password));
+                    var formContent = new FormUrlEncodedContent(formVariables);
+            httpClient.PostAsync(requestURI,formVariables);
+}*/
 
     }
 }

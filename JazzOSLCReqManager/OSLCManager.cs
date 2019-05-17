@@ -7,7 +7,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
+using System.Xml.XPath;
 
 namespace JazzOSLCReqManager
 {
@@ -78,12 +80,12 @@ namespace JazzOSLCReqManager
         {
             string rootServices = "rootservices";
             this.HttpClient.DefaultRequestHeaders.Clear();
-            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
             HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
 
             //HttpResponseMessage response = HttpUtils.GetWebDocument(rootServices ,this.JtsServer, this.Login, this.Password, this.HttpClient);
-            HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(rootServices, this.Login, this.Password, this.HttpClient, this.JtsServer);
-
+            HttpResponseMessage response = HttpUtils.sendGetForSecureDocument("rm/"+rootServices, this.Login, this.Password, this.HttpClient, this.JtsServer);
+            
             try
             {
                 response.EnsureSuccessStatusCode();
@@ -96,6 +98,7 @@ namespace JazzOSLCReqManager
 
             XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
             
+            
             XNamespace xpath = "http://open-services.net/xmlns/rm/1.0/";
             //XName
             string attribute = xDoc.Root.Element(xpath + "rmServiceProviders").FirstAttribute.Value;
@@ -106,6 +109,107 @@ namespace JazzOSLCReqManager
             response.Dispose();
 
             return attribute;
+
+
+        }
+
+        public string getServiceProviders(string catalogURI){
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+
+            HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(catalogURI,this.Login,this.Password,this.HttpClient,this.JtsServer);
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.InnerException);
+                response.Dispose();
+            }
+            
+            
+
+            
+                XPathDocument doc = new XPathDocument(response.Content.ReadAsStreamAsync().Result);
+                XPathNavigator nav = doc.CreateNavigator();
+                XmlNamespaceManager manager = new XmlNamespaceManager(nav.NameTable);
+                manager.AddNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+                manager.AddNamespace("oslc_rm", "http://open-services.net/xmlns/rm/1.0/");
+                XPathNodeIterator iterator = nav.Select("/rdf:Description/oslc_rm:rmServiceProviders/@rdf:resource", manager);
+                nav = doc.CreateNavigator();
+                manager = new XmlNamespaceManager(nav.NameTable);
+                manager.AddNamespace("oslc", "http://open-services.net/ns/core#");
+                manager.AddNamespace("dcterms", "http://purl.org/dc/terms/");
+                iterator = nav.Select("//oslc:ServiceProvider/dcterms:title", manager);
+                Console.WriteLine("The Project Areas for this RM Server are:");
+                bool fetched = false;
+                while (iterator.MoveNext())
+                {
+                    fetched = true;
+                    XPathNavigator nav2 = iterator.Current.Clone();
+                    Console.WriteLine(nav2.Value);
+                }
+                if(!fetched)
+                    Console.WriteLine("--No Project Areas Found--");
+            
+
+
+            
+
+            return "test";
+
+
+        }
+
+         public string getServiceProvider(string catalogURI,String paName){
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+
+            HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(catalogURI,this.Login,this.Password,this.HttpClient,this.JtsServer);
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.InnerException);
+                response.Dispose();
+            }
+            
+            
+
+            
+                XPathDocument doc = new XPathDocument(response.Content.ReadAsStreamAsync().Result);
+                XPathNavigator nav = doc.CreateNavigator();
+                XmlNamespaceManager manager = new XmlNamespaceManager(nav.NameTable);
+                manager.AddNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+                manager.AddNamespace("oslc_rm", "http://open-services.net/xmlns/rm/1.0/");
+                XPathNodeIterator iterator = nav.Select("/rdf:Description/oslc_rm:rmServiceProviders/@rdf:resource", manager);
+                nav = doc.CreateNavigator();
+                manager = new XmlNamespaceManager(nav.NameTable);
+                manager.AddNamespace("oslc", "http://open-services.net/ns/core#");
+                manager.AddNamespace("dcterms", "http://purl.org/dc/terms/");
+                iterator = nav.Select("//oslc:ServiceProvider/dcterms:title", manager);
+                bool fetched = false;
+                while (iterator.MoveNext())
+                {
+                    fetched = true;
+                    XPathNavigator nav2 = iterator.Current.Clone();
+                    if (nav2.Value == paName)
+                        return nav2.Value;
+                }
+                if(!fetched){
+                    Console.WriteLine("--No Project Areas Found--");
+                }
+            
+
+
+            
+
+            return "null";
 
 
         }

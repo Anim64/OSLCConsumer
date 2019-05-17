@@ -11,9 +11,12 @@ namespace TestApp
     {
         static void Main(string[] args)
         {
-            OSLCManager man = new OSLCManager("https://158.196.141.113/rm/", "", "fhanslik", "fhanslik", "");
-            Console.WriteLine(man.GetServiceProviderCatalog());
-            Console.WriteLine("nn");
+            string projectArea = "Test project";
+            OSLCManager man = new OSLCManager("https://158.196.141.113/", "", "fhanslik", "fhanslik", "");
+            string providerCatalog = man.GetServiceProviderCatalog();
+            Console.WriteLine(providerCatalog);
+            string serviceProvider = man.getServiceProvider(providerCatalog,projectArea);
+            Console.WriteLine(serviceProvider);
             Console.ReadKey();
             
         }
