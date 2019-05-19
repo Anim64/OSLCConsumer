@@ -1,4 +1,5 @@
-﻿using JazzOSLCReqManager.Utils;
+﻿using JazzOSLCReqManager.Datamodel;
+using JazzOSLCReqManager.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ using System.Xml.XPath;
 
 namespace JazzOSLCReqManager
 {
-    internal class OSLCManager
+    public class OSLCManager
     {
         
         public static bool DEBUG = false;
@@ -24,11 +25,10 @@ namespace JazzOSLCReqManager
         public string ProjectName { get; set; }
         public float Version { get; }
         public HttpClient HttpClient { get; }
-        private static XNamespace xpath = "http://open-services.net/xmlns/rm/1.0/";
-        private Dictionary<string,XNamespace> namespaces;
+        private Dictionary<string,XNamespace> Namespaces;
 
 
-        
+
 
         public OSLCManager(string server, string jtsServer, string login, string password, string projectName, float version = 3.0f)
         {
@@ -38,11 +38,11 @@ namespace JazzOSLCReqManager
             this.Password = password;
             this.ProjectName = projectName;
             this.Version = version;
-            this.namespaces = new Dictionary<string, XNamespace>();
-            this.namespaces.Add("oslc_rm","http://open-services.net/xmlns/rm/1.0/");
-            this.namespaces.Add("oslc","http://open-services.net/ns/core#");
-            this.namespaces.Add("dcterms","http://purl.org/dc/terms/");
-            this.namespaces.Add("rdf","http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+            this.Namespaces = new Dictionary<string, XNamespace>();
+            this.Namespaces.Add("oslc_rm","http://open-services.net/xmlns/rm/1.0/");
+            this.Namespaces.Add("oslc","http://open-services.net/ns/core#");
+            this.Namespaces.Add("dcterms","http://purl.org/dc/terms/");
+            this.Namespaces.Add("rdf","http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 
             ServicePointManager
                 .ServerCertificateValidationCallback +=
@@ -52,7 +52,7 @@ namespace JazzOSLCReqManager
             this.HttpClient.BaseAddress = new Uri(server);
         }
 
-        public bool CreateRequirement(string serviceProviderUrl, string parentFolder)
+        public string CreateRequirement(string serviceProviderUrl, string parentFolder)
         {
             this.HttpClient.DefaultRequestHeaders.Clear();
             HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
@@ -80,29 +80,45 @@ namespace JazzOSLCReqManager
 
             XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
             response.Dispose();
-            Console.WriteLine(xDoc.Document);
 
 
-            XElement factoryNode = xDoc.Descendants(this.namespaces["oslc"] + "resourceType")
+            XElement factoryNode = xDoc.Descendants(this.Namespaces["oslc"] + "resourceType")
                                     .Where(rt => rt.FirstAttribute.Value == resourceType)
-                                    .Ancestors(this.namespaces["oslc"] + "CreationFactory").FirstOrDefault();
+                                    .Ancestors(this.Namespaces["oslc"] + "CreationFactory").FirstOrDefault();
 
-            string factoryURI = factoryNode.Element(this.namespaces["oslc"] + "creation")
+            string factoryURI = factoryNode.Element(this.Namespaces["oslc"] + "creation")
                                     .FirstAttribute.Value;
 
-            var resourceShapes = factoryNode.Elements(this.namespaces["oslc"] + "resourceShape");
+            var resourceShapes = factoryNode.Elements(this.Namespaces["oslc"] + "resourceShape");
+            if(resourceShapes.Count() == 0)
+            {
+                Console.WriteLine("Could not find creation factories for project: " + this.ProjectName
+                    + "\nPlease make sure there is at least one type in the type system");
+            }
 
             string shapeURL = resourceShapes.FirstOrDefault().FirstAttribute.Value;
 
-            
-
             Console.WriteLine(factoryURI);
 
+            string content = CreateRequirementFromShape(shapeURL, parentFolder);
 
-            return true;
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            HttpClient.DefaultRequestHeaders.Add("Content-Type", "application/xml");
+            HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+            StringContent httpContent = new StringContent(content);
+
+            response = HttpUtils.sendPostForSecureDocument(factoryURI, this.Login, this.Password, this.HttpClient, httpContent);
+
+            Uri location = response.Headers.Location;
+            Console.WriteLine(location.OriginalString);
+
+            response.Dispose();
+
+            return location.OriginalString;
         }
 
-        private string createRequirementFromShape(string shapeURL, string parentFolder)
+        private string CreateRequirementFromShape(string shapeURL, string parentFolder)
         {
             this.HttpClient.DefaultRequestHeaders.Clear();
             HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
@@ -121,6 +137,7 @@ namespace JazzOSLCReqManager
             }
 
             XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+            Console.WriteLine(xDoc.Document); 
             response.Dispose();
 
             //For this example, lets assume we just want to have a title, description and 
@@ -130,7 +147,46 @@ namespace JazzOSLCReqManager
             //Note: primary text must be in xhtml compliant format
             string primaryText = "<div xmlns=\"http://www.w3.org/1999/xhtml\" id=\"_Nf2cQJKNEd25PMUBGiN3Dw\"><h1 id=\"_DwpWsMueEd28xKN9fhQheA\">Test Document</h1></div>";
 
-            return null;
+            RequirementRequest req = new RequirementRequest(this.Server, "", shapeURL);
+            req.DcTitle = title;
+            req.DcDescription = description;
+
+            if (parentFolder != null)
+            {
+                req.ParentFolder = parentFolder;
+            }
+
+            //Add any internal properties to request by getting property URI from shape
+            string primaryTextPropURI = FindPropertyByTitle(xDoc, "Primary Text");
+            req.RmLiteralProperties.Add(primaryTextPropURI, primaryText);
+
+            return req.WriteXML().ToString();
+        }
+
+        public string FindPropertyByTitle(XDocument xmlDocument, string title)
+        {
+            string propertyDefinition = null;
+            if (this.Version >= 4.0f)
+            {
+                propertyDefinition = xmlDocument.Descendants(this.Namespaces["dcterms"] + "title")
+                                        .Where(t => t.Value == title)
+                                        .Ancestors().FirstOrDefault()
+                                        .Element(this.Namespaces["oslc"] + "propertyDefinition")
+                                        .FirstAttribute
+                                        .Value;
+                                        
+            }
+
+            else
+            {
+                propertyDefinition = xmlDocument.Descendants(this.Namespaces["oslc"] + "name")
+                                        .Where(t => t.Value == title.Replace(" ", ""))
+                                        .Ancestors().FirstOrDefault()
+                                        .Element(this.Namespaces["oslc"] + "propertyDefinition")
+                                        .FirstAttribute
+                                        .Value;
+            }
+            return propertyDefinition;
         }
 
         public string GetServiceProviderCatalog()
@@ -156,15 +212,9 @@ namespace JazzOSLCReqManager
             response.Dispose();
 
             //XName
-            string attribute = xDoc.Root.Element(namespaces["oslc_rm"] + "rmServiceProviders").FirstAttribute.Value;
-
-
-
-            
+            string attribute = xDoc.Root.Element(Namespaces["oslc_rm"] + "rmServiceProviders").FirstAttribute.Value;
 
             return attribute;
-
-
         }
 
         public Dictionary<string,string> GetServiceProviders(string catalogURI){
@@ -188,7 +238,7 @@ namespace JazzOSLCReqManager
             response.Dispose();
 
 
-            Dictionary <string,string> projectAreas = xDoc.Descendants(namespaces["dcterms"] + "title").ToDictionary(kv => kv.Value, kv => kv.Parent.FirstAttribute.Value);
+            Dictionary <string,string> projectAreas = xDoc.Descendants(Namespaces["dcterms"] + "title").ToDictionary(kv => kv.Value, kv => kv.Parent.FirstAttribute.Value);
             
             if(projectAreas == null)
             { 
@@ -218,7 +268,7 @@ namespace JazzOSLCReqManager
             XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
             response.Dispose();
 
-            string serviceProvider = xDoc.Descendants(namespaces["dcterms"] + "title").FirstOrDefault(p => p.Value == this.ProjectName).Parent.FirstAttribute.Value;
+            string serviceProvider = xDoc.Descendants(Namespaces["dcterms"] + "title").FirstOrDefault(p => p.Value == this.ProjectName).Parent.FirstAttribute.Value;
    
             return serviceProvider;
 

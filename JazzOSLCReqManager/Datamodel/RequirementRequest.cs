@@ -3,24 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace JazzOSLCReqManager.Datamodel
 {
-    public class RequirementRequest
+    internal class RequirementRequest
     {
-        public string Uri { get; set; }
-        public string DcTitle { get; set; }
-        public string DcIdentifier { get; set; }
-        public string DcType { get; set; }
-        public string DcDescription { get; set; }
-        public string DcSubject { get; set; }
-        public string DcCreator { get; set; }
-        public DateTime DcModified { get; set; }
-        public Dictionary<string, string> RmLiteralProperties { get; set; }
-        public Dictionary<string, string> RmResourceProperties { get; set; }
-        public string RmPropertyURI { get; set; }
-        public string ShapeURI { get; set; }
-        public string ParentFolder { get; set; }
+        internal string Uri { get; set; }
+        internal string DcTitle { get; set; }
+        internal string DcIdentifier { get; set; }
+        internal string DcType { get; set; }
+        internal string DcDescription { get; set; }
+        internal string DcSubject { get; set; }
+        internal string DcCreator { get; set; }
+        internal DateTime DcModified { get; set; }
+        internal Dictionary<string, string> RmLiteralProperties { get; set; }
+        internal Dictionary<string, string> RmResourceProperties { get; set; }
+        internal string RmPropertyURI { get; set; }
+        internal string ShapeURI { get; set; }
+        internal string ParentFolder { get; set; }
 
         static string RM_TITLE = "dc:title";
 	    static string RM_IDENTIFIER = "dc:identifier";
@@ -34,10 +35,21 @@ namespace JazzOSLCReqManager.Datamodel
 	    static string RM_PARENT = "nav:parent";
 	    static string RM_JAZZ = "rm_jazz";  // New for RM 4.0.1 - Vocabulary Support
 
-        public RequirementRequest()
+        
+        internal RequirementRequest(string server, string uri, string shape)
         {
+            
+            this.Uri = uri;
+            this.RmPropertyURI = server + "/types/";
+            this.ShapeURI = shape;
+
             RmLiteralProperties = new Dictionary<string, string>();
             RmResourceProperties = new Dictionary<string, string>();
+        }
+
+        internal XDocument WriteXML()
+        {
+            return null;
         }
     }
 }

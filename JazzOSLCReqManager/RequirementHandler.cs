@@ -28,12 +28,7 @@ namespace JazzOSLCReqManager
             this.ServiceProvider = Manager.GetServiceProvider(ServiceProviderCatalog);
         }
 
-        public bool CreateRequirement()
-        {
-            return CreateRequirement(null);
-        }
-
-        public bool CreateRequirement(string parentFolder)
+        public string CreateRequirement(string parentFolder = null)
         {
             return this.Manager.CreateRequirement(this.ServiceProvider, parentFolder);
         }

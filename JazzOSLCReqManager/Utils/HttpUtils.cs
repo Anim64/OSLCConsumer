@@ -13,8 +13,8 @@ namespace JazzOSLCReqManager.Utils
     {
         static public bool DEBUG = true;
 
-        public static string AUTHURL = "X-jazz-web-oauth-url";
-        public static string AUTHREQUIRED = "X-com-ibm-team-repository-web-auth-msg";
+        internal static string AUTHURL = "X-jazz-web-oauth-url";
+        internal static string AUTHREQUIRED = "X-com-ibm-team-repository-web-auth-msg";
         // name of custom header that authentication messages are stored in
         private static string FORM_AUTH_HEADER = "X-com-ibm-team-repository-web-auth-msg"; //$NON-NLS-1$
         // auth header value when authentication is required
@@ -25,7 +25,7 @@ namespace JazzOSLCReqManager.Utils
         public static string FORM_AUTH_FAILED_URI = "/auth/authfailed"; //$NON-NLS-1$
 
 
-        public static void printResponseHeaders(HttpResponseMessage response)
+        internal static void printResponseHeaders(HttpResponseMessage response)
         {
             HttpResponseHeaders headers = response.Headers;
 
@@ -36,7 +36,7 @@ namespace JazzOSLCReqManager.Utils
 
         }
 
-        public static void printResponseBody(HttpResponseMessage response)
+        internal static void printResponseBody(HttpResponseMessage response)
         {
             HttpContent content = response.Content;
 
@@ -48,12 +48,8 @@ namespace JazzOSLCReqManager.Utils
 
         }
 
-        public static HttpResponseMessage GetWebDocument(string requestUri, string jtsUri, string login, string password, HttpClient client)
-        {
-            return null;
-        }
 
-        private static Boolean doRRCOAuth(HttpResponseMessage documentResponse,string login,string password,HttpClient httpClient){
+        private static bool DoRRCOAuth(HttpResponseMessage documentResponse,string login,string password,HttpClient httpClient){
 
             if (documentResponse.StatusCode == HttpStatusCode.OK)
             {
@@ -100,7 +96,7 @@ namespace JazzOSLCReqManager.Utils
         }
 
 
-        public static HttpResponseMessage sendGetForSecureDocument(string RequestUri, string login, string password, HttpClient httpClient, string JtsUri)
+        internal static HttpResponseMessage sendGetForSecureDocument(string RequestUri, string login, string password, HttpClient httpClient, string JtsUri)
         {
 
             if (DEBUG) 
@@ -113,7 +109,7 @@ namespace JazzOSLCReqManager.Utils
                 HttpUtils.printResponseHeaders(documentResponse);
             }
 
-            Boolean loginResult = doRRCOAuth(documentResponse,login,password,httpClient);
+            bool loginResult = DoRRCOAuth(documentResponse,login,password,httpClient);
             if(loginResult){
                 if (DEBUG) 
                     Console.WriteLine(">> GET(2) " + RequestUri);
@@ -126,8 +122,8 @@ namespace JazzOSLCReqManager.Utils
             return documentResponse;
         }
 
-       public static HttpResponseMessage sendPostForSecureDocument(string requestURI,string login,string password,
-           HttpClient httpClient,HttpContent ValuesToSend,int expectedResponse){
+        internal static HttpResponseMessage sendPostForSecureDocument(string requestURI,string login,string password,
+           HttpClient httpClient,HttpContent ValuesToSend){
            if(DEBUG)
                 Console.WriteLine(">> Post(1) " + requestURI);
            HttpResponseMessage response = httpClient.PostAsync(requestURI,ValuesToSend).Result;
@@ -137,8 +133,12 @@ namespace JazzOSLCReqManager.Utils
 			    HttpUtils.printResponseHeaders(response);
             }
 
-
-            if((int)response.StatusCode != expectedResponse){
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch(Exception e)
+            { 
                 Console.WriteLine("Error occured during Post method");
                 response.Dispose();
             }
