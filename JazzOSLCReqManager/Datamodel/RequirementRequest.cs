@@ -49,6 +49,62 @@ namespace JazzOSLCReqManager.Datamodel
 
         internal XDocument WriteXML()
         {
+            XDocument xDoc = new XDocument();
+
+            //         xDoc.Add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            //         xDoc.Add("<rdf:RDF\n");
+            //         xDoc.Add("\t\txmlns:oslc_rm=\"http://open-services.net/ns/rm#\"\n");
+            //         xDoc.Add("\t\txmlns:dc=\"http://purl.org/dc/terms/\"\n");
+            //         xDoc.Add("\t\txmlns:oslc=\"http://open-services.net/ns/core#\"\n");
+            //         xDoc.Add("\t\txmlns:nav=\"http://jazz.net/ns/rm/navigation#\"\n");
+            //         xDoc.Add("\t\txmlns:rm_property=\"" + this.RmPropertyURI + "\"\n");
+            //         xDoc.Add("\t\txmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n");
+            //         xDoc.Add("\t<oslc_rm:Requirement\n");
+            //         xDoc.Add("\t\txmlns:rm_jazz=\"http://jazz.net/ns/rm#\"\n");
+
+            //         if (this.Uri != null)
+            //         {
+            //xDoc.Add("\t\trdf:about=\"" + this.Uri + "\">\n");
+            //         }
+            //         else
+            //         {
+            //xDoc.Add(">\n");
+            //         }
+
+            Console.WriteLine(xDoc.Document.ToString());
+
+            return null;
+        }
+        internal XDocument WriteXML(Dictionary<string, XNamespace> Namespaces)
+        {
+            XDocument xDoc = new XDocument();
+
+            //         xDoc.Add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            //         xDoc.Add("<rdf:RDF\n");
+            //         xDoc.Add("\t\txmlns:oslc_rm=\"http://open-services.net/ns/rm#\"\n");
+            //         xDoc.Add("\t\txmlns:dc=\"http://purl.org/dc/terms/\"\n");
+            //         xDoc.Add("\t\txmlns:oslc=\"http://open-services.net/ns/core#\"\n");
+            //         xDoc.Add("\t\txmlns:nav=\"http://jazz.net/ns/rm/navigation#\"\n");
+            //         xDoc.Add("\t\txmlns:rm_property=\"" + this.RmPropertyURI + "\"\n");
+            //         xDoc.Add("\t\txmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n");
+            //         xDoc.Add("\t<oslc_rm:Requirement\n");
+            //         xDoc.Add("\t\txmlns:rm_jazz=\"http://jazz.net/ns/rm#\"\n");
+
+            //         if (this.Uri != null)
+            //         {
+            //xDoc.Add("\t\trdf:about=\"" + this.Uri + "\">\n");
+            //         }
+            //         else
+            //         {
+            //xDoc.Add(">\n");
+            //         }
+            xDoc.Add(new XElement("xml", new XAttribute("version", "1.0"), new XAttribute("encoding", "UTF-8")
+                ));
+            xDoc.Root.Add(new XElement(Namespaces["rdf"]+"RDF", new XAttribute(XNamespace.Xmlns + "rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")));
+             //new XAttribute(XNamespace.Xmlns + "oslc_rm", "http://open-services.net/ns/rm#")
+
+            Console.WriteLine(xDoc.Document.ToString());
+
             return null;
         }
     }

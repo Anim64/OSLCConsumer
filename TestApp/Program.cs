@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 namespace TestApp
 {
     class Program
@@ -12,8 +11,8 @@ namespace TestApp
         static void Main(string[] args)
         {
             string projectArea = "Test project";
-            RequirementHandler rqH = new RequirementHandler("https://158.196.141.113/", "", "fhanslik", "fhanslik", projectArea);
-            rqH.CreateRequirement();
+            //RequirementHandler rqH = new RequirementHandler("https://158.196.141.113/", "", "fhanslik", "fhanslik", projectArea);
+            //rqH.CreateRequirement();
             /*string providerCatalog = man.GetServiceProviderCatalog();
             Console.WriteLine(providerCatalog);
             //get single Project Area
@@ -24,6 +23,14 @@ namespace TestApp
             foreach(KeyValuePair<string,string> singleProvider in serviceProviders){
                 Console.WriteLine("ProjectArea: "+singleProvider.Key + " ServiceProvider : "+singleProvider.Value);
             }*/
+
+            OSLCManager man = new OSLCManager("https://158.196.141.113/","","fhanslik","fhanslik",projectArea);
+            //string s = man.DiscoverRootFolder(projectArea);
+            man.TestRequirementRequest();
+            
+
+            Console.ReadKey();
+
             
         }
     }

@@ -67,7 +67,7 @@ namespace JazzOSLCReqManager.Utils
                     var formContent = new FormUrlEncodedContent(formVariables);
 
                     HttpResponseMessage formPost = httpClient.PostAsync("/jts/auth/j_security_check", formContent).Result;
-
+                    
                     if (DEBUG) 
                         Console.WriteLine(">> POST " + formPost.RequestMessage.RequestUri);
                     HttpRequestMessage formResponse = formPost.RequestMessage;
@@ -124,14 +124,16 @@ namespace JazzOSLCReqManager.Utils
 
         internal static HttpResponseMessage sendPostForSecureDocument(string requestURI,string login,string password,
            HttpClient httpClient,HttpContent ValuesToSend){
-           if(DEBUG)
+            if(DEBUG)
                 Console.WriteLine(">> Post(1) " + requestURI);
-           HttpResponseMessage response = httpClient.PostAsync(requestURI,ValuesToSend).Result;
+            HttpResponseMessage response = httpClient.PostAsync(requestURI,ValuesToSend).Result;
 
             if(DEBUG){
                 Console.WriteLine(">> Response Headers:");
 			    HttpUtils.printResponseHeaders(response);
             }
+            
+
 
             try
             {
@@ -146,6 +148,39 @@ namespace JazzOSLCReqManager.Utils
             
 
         }
+
+        internal static HttpResponseMessage sendPutForSecureDocument(string requestURI,string login,string password,
+           HttpClient httpClient,HttpContent ValuesToSend){
+            if(DEBUG)
+                Console.WriteLine(">> Put(1) " + requestURI);
+            HttpResponseMessage response = httpClient.PutAsync(requestURI,ValuesToSend).Result;
+
+            if(DEBUG){
+                Console.WriteLine(">> Response Headers:");
+			    HttpUtils.printResponseHeaders(response);
+            }
+
+            bool loginResult = DoRRCOAuth(response,login,password,httpClient);
+
+            if(loginResult){
+                response = httpClient.PutAsync(requestURI,ValuesToSend).Result;
+            }
+
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch(Exception e)
+            { 
+                Console.WriteLine("Error occured during Put method");
+                Console.WriteLine(e.InnerException);
+                response.Dispose();
+            }
+            return response;
+            
+
+
+            }
 
     }
 }

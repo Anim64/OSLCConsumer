@@ -117,6 +117,64 @@ namespace JazzOSLCReqManager
 
             return location.OriginalString;
         }
+        //change to 'private' later
+        public string DiscoverRootFolder(string ServiceProvider){
+
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            this.HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            this.HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+
+            HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(ServiceProvider,this.Login,this.Password,this.HttpClient,this.JtsServer);
+            try 
+	        {	        
+		        response.EnsureSuccessStatusCode();
+	        }
+	        catch (Exception e)
+	        {
+
+		        Console.WriteLine(e.InnerException);
+                response.Dispose();
+	        }
+
+            XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+            //XDocument xDoc = XDocument.Load("C:/Users/User/source/repos/OSLCConsumer-master/TestApp/bin/Debug/service.xml");
+            
+            string QueryCapabilityURI = xDoc.Root.Descendants(this.Namespaces["dcterms"]+"title")
+                .Where(p => p.Value == "Folder Query Capability").FirstOrDefault()
+                .Parent.Descendants(this.Namespaces["oslc"]+"queryBase")
+                .FirstOrDefault().FirstAttribute
+                .Value;
+            Console.WriteLine(QueryCapabilityURI);
+
+            response.Dispose();
+
+         
+
+            response = HttpUtils.sendGetForSecureDocument(QueryCapabilityURI,this.Login,this.Password,this.HttpClient,this.JtsServer);
+
+            try 
+	        {	        
+		        response.EnsureSuccessStatusCode();
+	        }
+	        catch (Exception e)
+	        {
+
+		        Console.WriteLine(e.InnerException);
+                response.Dispose();
+	        }
+
+
+            xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+            response.Dispose();
+
+            string RootFolder = xDoc.Descendants(this.Namespaces["dcterms"]+"title")
+                .Where(p => p.Value == "root").FirstOrDefault()
+                .Parent.FirstAttribute
+                .Value;
+
+            return RootFolder;
+
+        }
 
         private string CreateRequirementFromShape(string shapeURL, string parentFolder)
         {
@@ -125,6 +183,8 @@ namespace JazzOSLCReqManager
             HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
 
             HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(shapeURL, this.Login, this.Password, this.HttpClient, this.JtsServer);
+
+            
 
             try
             {
@@ -272,6 +332,16 @@ namespace JazzOSLCReqManager
    
             return serviceProvider;
 
+
+        }
+
+        /// <summary>
+        /// For testing purposes only
+        /// </summary>
+        public void TestRequirementRequest()
+        {
+            RequirementRequest req = new RequirementRequest(this.Server, "", "TestShapeUrl");
+            req.WriteXML(this.Namespaces);
 
         }
 
