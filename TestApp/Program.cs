@@ -23,7 +23,6 @@ namespace TestApp
             foreach(KeyValuePair<string,string> singleProvider in serviceProviders){
                 Console.WriteLine("ProjectArea: "+singleProvider.Key + " ServiceProvider : "+singleProvider.Value);
             }*/
-            Console.ReadKey();
             
         }
     }
