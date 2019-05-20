@@ -43,6 +43,8 @@ namespace JazzOSLCReqManager
             this.Namespaces.Add("oslc","http://open-services.net/ns/core#");
             this.Namespaces.Add("dcterms","http://purl.org/dc/terms/");
             this.Namespaces.Add("rdf","http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+            this.Namespaces.Add("nav", "http://jazz.net/ns/rm/navigation#");
+            this.Namespaces.Add("dc", "http://purl.org/dc/terms/");
 
             ServicePointManager
                 .ServerCertificateValidationCallback +=

@@ -40,7 +40,7 @@ namespace JazzOSLCReqManager.Datamodel
         {
             
             this.Uri = uri;
-            this.RmPropertyURI = server + "/types/";
+            this.RmPropertyURI = server + "types/";
             this.ShapeURI = shape;
 
             RmLiteralProperties = new Dictionary<string, string>();
@@ -100,8 +100,19 @@ namespace JazzOSLCReqManager.Datamodel
             //         }
             xDoc.Add(new XElement("xml", new XAttribute("version", "1.0"), new XAttribute("encoding", "UTF-8")
                 ));
-            xDoc.Root.Add(new XElement(Namespaces["rdf"]+"RDF", new XAttribute(XNamespace.Xmlns + "rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")));
-             //new XAttribute(XNamespace.Xmlns + "oslc_rm", "http://open-services.net/ns/rm#")
+            xDoc.Root.Add(
+                new XElement(Namespaces["rdf"]+"RDF", 
+                    new XAttribute(XNamespace.Xmlns + "rdf", Namespaces["rdf"]),
+                    new XAttribute(XNamespace.Xmlns + "oslc_rm", Namespaces["oslc_rm"]),
+                    new XAttribute(XNamespace.Xmlns + "dc", Namespaces["dc"]),
+                    new XAttribute(XNamespace.Xmlns + "oslc", Namespaces["oslc"]),
+                    new XAttribute(XNamespace.Xmlns + "nav", Namespaces["nav"]),
+                    new XAttribute(XNamespace.Xmlns + "rm_property", this.RmPropertyURI),
+                    new XElement(Namespaces["oslc_rm"]+"Requirement",
+                        new XAttribute(XNamespace.Xmlns+"rm_jazz", "http://jazz.net/ns/rm#"))
+                ));
+            if (this.Uri.Length > 1)
+            xDoc.Descendants(Namespaces["oslc_rm"] + "Requirement").FirstOrDefault().Add(new XAttribute(Namespaces["rdf"] + "about", this.Uri));
 
             Console.WriteLine(xDoc.Document.ToString());
 
