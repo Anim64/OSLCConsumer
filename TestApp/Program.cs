@@ -26,8 +26,11 @@ namespace TestApp
 
             OSLCManager man = new OSLCManager("https://158.196.141.113/","","fhanslik","fhanslik",projectArea);
             //string s = man.DiscoverRootFolder(projectArea);
-            man.TestRequirementRequest();
-            
+            string catalogUri = man.GetServiceProviderCatalog();
+            string service = man.GetServiceProvider(catalogUri);
+            //man.DiscoverRootFolder(service);
+            string query = man.getQueryCapability(service);
+            man.performQuery(query);
 
             Console.ReadKey();
 

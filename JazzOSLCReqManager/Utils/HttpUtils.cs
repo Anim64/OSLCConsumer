@@ -90,8 +90,10 @@ namespace JazzOSLCReqManager.Utils
                 else
                     return true;
             }
+            if (DEBUG)
+                Console.WriteLine("Cannot Perform login Operation Status Code : " + documentResponse.StatusCode.ToString());
 
-            return false;
+                return false;
 
         }
 
@@ -127,15 +129,25 @@ namespace JazzOSLCReqManager.Utils
             if(DEBUG)
                 Console.WriteLine(">> Post(1) " + requestURI);
             HttpResponseMessage response = httpClient.PostAsync(requestURI,ValuesToSend).Result;
-
             if(DEBUG){
                 Console.WriteLine(">> Response Headers:");
 			    HttpUtils.printResponseHeaders(response);
             }
             
+            bool loginResult = DoRRCOAuth(response, login, password, httpClient);
+            if (loginResult)
+            {
+                if (DEBUG)
+                    Console.WriteLine(">> GET(2) " + requestURI);
+                response = httpClient.PostAsync(requestURI, ValuesToSend).Result;
+                Console.WriteLine(response.StatusCode.ToString());
+                return response;
+            }
+            else
+                if (DEBUG)
+                Console.WriteLine("Somethign went wrong during Authentication");
 
-
-            try
+            /*try
             {
                 response.EnsureSuccessStatusCode();
             }
@@ -143,7 +155,7 @@ namespace JazzOSLCReqManager.Utils
             { 
                 Console.WriteLine("Error occured during Post method");
                 response.Dispose();
-            }
+            }*/
             return response;
             
 
