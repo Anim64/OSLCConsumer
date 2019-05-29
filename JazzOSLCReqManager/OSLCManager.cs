@@ -43,6 +43,7 @@ namespace JazzOSLCReqManager
             this.Namespaces.Add("oslc","http://open-services.net/ns/core#");
             this.Namespaces.Add("dcterms","http://purl.org/dc/terms/");
             this.Namespaces.Add("rdf","http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+            this.Namespaces.Add("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
             this.Namespaces.Add("nav", "http://jazz.net/ns/rm/navigation#");
             this.Namespaces.Add("dc", "http://purl.org/dc/terms/");
 
@@ -83,52 +84,35 @@ namespace JazzOSLCReqManager
             return requestQueryURL;
         }
 
-        public void performQuery(string queryCapabilityURI)
+        public HttpResponseMessage performQuery(string queryCapabilityURI)
         {
-            string id = "1189";
-            /*queryCapabilityURI + "&oslc.prefix=" + URLEncoder.encode("dcterms=<http://purl.org/dc/terms/>", "UTF8") +
-		                          "&oslc.select=" + URLEncoder.encode("dcterms:title", "UTF8") + 
-		                           "&oslc.where=" + URLEncoder.encode("dcterms:identifier=" + identifier, "UTF8");*/
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            this.HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            this.HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+            
+            string id = "1075";
             Encoding UTF8 = System.Text.Encoding.GetEncoding("UTF-8");
-            string oslcSearchByIdentifierQuery = queryCapabilityURI
-                + "oslc.prefix=" + HttpUtility.UrlEncode("dcterms=<http://purl.org/dc/terms/>", UTF8)
-                + "oslc.select=" + HttpUtility.UrlEncode("dcterms:title", UTF8)
-                + "oslc.where="  + HttpUtility.UrlEncode("dcterms:identifier=" + id, UTF8);
-
-            /*string oslcSearchByIdentifierQuery = queryCapabilityURI
-                + "oslc.prefix=" + "dcterms=<http://purl.org/dc/terms/>"
+            
+           string oslcSearchByIdentifierQuery = queryCapabilityURI
+                + "&oslc.prefix=" + "dcterms=<http://purl.org/dc/terms/>"
                 + "&oslc.select=" + "dcterms:title"
-                + "&oslc.where=" + "dcterms:identifier=" + id;*/
+                + "&oslc.where=" + "dcterms:identifier=" + id;
 
-           /* var stringContent = new FormUrlEncodedContent(new[]
-            {
-                new KeyValuePair<string, string>("oslc.prefix", "dcterms=<http://purl.org/dc/terms/>"),
-                new KeyValuePair<string, string>("oslc.select", "dcterms:title"),
-                new KeyValuePair<string, string>("oslc.where", "dcterms:identifier=" + id)
-            });*/
-
-           /* var stringContent = new FormUrlEncodedContent(new[]
-            {
-                new KeyValuePair<string, string>("oslc.prefix", HttpUtility.UrlEncode("dcterms=<http://purl.org/dc/terms/>", UTF8)),
-                new KeyValuePair<string, string>("oslc.select", HttpUtility.UrlEncode("dcterms:title", UTF8)),
-                new KeyValuePair<string, string>("oslc.where", HttpUtility.UrlEncode("dcterms:identifier=" + id, UTF8))
-            });*/
             string[] lhrs = oslcSearchByIdentifierQuery.Split('?');
             string url = lhrs[0];
             string body = lhrs[1];
 
-            /*var formVariables = new List<KeyValuePair<string, string>>();
-            formVariables.Add(new KeyValuePair<string, string>("oslc.prefix", HttpUtility.UrlEncode("dcterms=<http://purl.org/dc/terms/>", UTF8)));
-            formVariables.Add(new KeyValuePair<string, string>("oslc.select", HttpUtility.UrlEncode("dcterms:title", UTF8)));
-            formVariables.Add(new KeyValuePair<string, string>("oslc.where", HttpUtility.UrlEncode("dcterms:identifier=" + id, UTF8)));
-            var stringContent = new FormUrlEncodedContent(formVariables);*/
 
-            StringContent stringContent = new StringContent(body);
+            StringContent stringContent = new StringContent(body,UTF8,"application/x-www-form-urlencoded");
 
             HttpResponseMessage response = HttpUtils.sendPostForSecureDocument(url, this.Login, this.Password, this.HttpClient, stringContent);
 
-            Console.WriteLine(response.StatusCode.ToString());
-           
+            /*XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+
+            var coll = xDoc.Root.Descendants(this.Namespaces["dcterms"] + "title").FirstOrDefault().Parent.Descendants(this.Namespaces["oslc_rm"]+ "RequirementCollection");
+            Console.WriteLine(coll);*/
+
+            return response;
 
         }
 
