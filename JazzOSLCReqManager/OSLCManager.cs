@@ -46,6 +46,7 @@ namespace JazzOSLCReqManager
             this.Namespaces.Add("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
             this.Namespaces.Add("nav", "http://jazz.net/ns/rm/navigation#");
             this.Namespaces.Add("dc", "http://purl.org/dc/terms/");
+            this.Namespaces.Add("oslc_rm2", "http://open-services.net/ns/rm#");
 
             ServicePointManager
                 .ServerCertificateValidationCallback +=
@@ -73,7 +74,6 @@ namespace JazzOSLCReqManager
             XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
             response.Dispose();
 
-
             string requestQueryURL = xDoc.Root.Descendants(this.Namespaces["dcterms"] + "title")
                .Where(p => p.Value == "Query Capability").FirstOrDefault()
                .Parent.Descendants(this.Namespaces["oslc"] + "queryBase")
@@ -84,13 +84,33 @@ namespace JazzOSLCReqManager
             return requestQueryURL;
         }
 
-        public HttpResponseMessage performQuery(string queryCapabilityURI)
+        public void getRequirmentsFromCollection(HttpResponseMessage response)
+        {
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            this.HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            this.HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+            XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+
+            string coll = xDoc.Root.Descendants(this.Namespaces["oslc_rm2"] + "RequirementCollection").FirstOrDefault()
+                .Attribute(this.Namespaces["rdf"]+"about").Value;
+
+            HttpResponseMessage something = HttpUtils.sendGetForSecureDocument(coll, this.Login, this.Password, this.HttpClient, this.JtsServer);
+
+            //Console.WriteLine(something.Content.ReadAsStringAsync().Result);
+
+            HttpResponseMessage testing = HttpUtils.sendGetForSecureDocument("https://158.196.141.113/rm/delivery-sessions", this.Login, this.Password, this.HttpClient, this.JtsServer);
+
+            Console.WriteLine(testing.Content.ReadAsStringAsync().Result);
+
+        }
+
+
+        public HttpResponseMessage performQuery(string queryCapabilityURI,string id)
         {
             this.HttpClient.DefaultRequestHeaders.Clear();
             this.HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
             this.HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
             
-            string id = "1075";
             Encoding UTF8 = System.Text.Encoding.GetEncoding("UTF-8");
             
            string oslcSearchByIdentifierQuery = queryCapabilityURI
@@ -108,9 +128,14 @@ namespace JazzOSLCReqManager
             HttpResponseMessage response = HttpUtils.sendPostForSecureDocument(url, this.Login, this.Password, this.HttpClient, stringContent);
 
             /*XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+            string coll = xDoc.Root.Descendants(this.Namespaces["oslc_rm2"] + "RequirementCollection").FirstOrDefault()
+                .Attribute(this.Namespaces["rdf"]+"about").Value;
 
-            var coll = xDoc.Root.Descendants(this.Namespaces["dcterms"] + "title").FirstOrDefault().Parent.Descendants(this.Namespaces["oslc_rm"]+ "RequirementCollection");
-            Console.WriteLine(coll);*/
+            HttpResponseMessage something = HttpUtils.sendGetForSecureDocument(coll, this.Login, this.Password, this.HttpClient, this.JtsServer);
+
+            Console.WriteLine(something.Content.ReadAsStringAsync().Result);*/
+
+
 
             return response;
 
@@ -380,18 +405,23 @@ namespace JazzOSLCReqManager
             try
             {
                 response.EnsureSuccessStatusCode();
+                
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.InnerException);
                 response.Dispose();
             }
-            
+
+            if (response.Headers.Contains("X-com-ibm-team-repository-web-auth-msg"))
+            {
+                Console.WriteLine("Sign in was not successful");
+                return null;
+            }
             XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
             response.Dispose();
 
             string serviceProvider = xDoc.Descendants(Namespaces["dcterms"] + "title").FirstOrDefault(p => p.Value == this.ProjectName).Parent.FirstAttribute.Value;
-   
             return serviceProvider;
 
 

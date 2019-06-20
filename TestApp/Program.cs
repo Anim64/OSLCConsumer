@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 namespace TestApp
@@ -29,8 +30,9 @@ namespace TestApp
             string catalogUri = man.GetServiceProviderCatalog();
             string service = man.GetServiceProvider(catalogUri);
             //man.DiscoverRootFolder(service);
-            string query = man.getQueryCapability(service);
-            man.performQuery(query);
+            //string query = man.getQueryCapability(service);
+            //HttpResponseMessage queryResponse =  man.performQuery(query,"1075");
+            //man.getRequirmentsFromCollection(queryResponse);
 
             Console.ReadKey();
 
