@@ -47,6 +47,7 @@ namespace JazzOSLCReqManager
             this.Namespaces.Add("nav", "http://jazz.net/ns/rm/navigation#");
             this.Namespaces.Add("dc", "http://purl.org/dc/terms/");
             this.Namespaces.Add("oslc_rm2", "http://open-services.net/ns/rm#");
+            this.Namespaces.Add("j.0", "http://www.ibm.com/xmlns/rdm/types/");
 
             ServicePointManager
                 .ServerCertificateValidationCallback +=
@@ -58,6 +59,9 @@ namespace JazzOSLCReqManager
 
         public string getQueryCapability(string serviceProviderUri)
         {
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            this.HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            this.HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
 
             HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(serviceProviderUri, this.Login, this.Password, this.HttpClient, this.JtsServer);
 
@@ -81,6 +85,37 @@ namespace JazzOSLCReqManager
                .Value;
 
  
+            return requestQueryURL;
+        }
+
+        public string getFolderQuery(string serviceProviderUri)
+        {
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            this.HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            this.HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+
+            HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(serviceProviderUri, this.Login, this.Password, this.HttpClient, this.JtsServer);
+
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.InnerException);
+                response.Dispose();
+            }
+
+            XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+            response.Dispose();
+
+            string requestQueryURL = xDoc.Root.Descendants(this.Namespaces["dcterms"] + "title")
+               .Where(p => p.Value == "Folder Query Capability").FirstOrDefault()
+               .Parent.Descendants(this.Namespaces["oslc"] + "queryBase")
+               .FirstOrDefault().FirstAttribute
+               .Value;
+
+
             return requestQueryURL;
         }
 
@@ -227,7 +262,7 @@ namespace JazzOSLCReqManager
 
             XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
             //XDocument xDoc = XDocument.Load("C:/Users/User/source/repos/OSLCConsumer-master/TestApp/bin/Debug/service.xml");
-            
+            Console.WriteLine(xDoc.Document.ToString());
             string QueryCapabilityURI = xDoc.Root.Descendants(this.Namespaces["dcterms"]+"title")
                 .Where(p => p.Value == "Folder Query Capability").FirstOrDefault()
                 .Parent.Descendants(this.Namespaces["oslc"]+"queryBase")
@@ -254,11 +289,13 @@ namespace JazzOSLCReqManager
 
             xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
             response.Dispose();
-
+           
             string RootFolder = xDoc.Descendants(this.Namespaces["dcterms"]+"title")
                 .Where(p => p.Value == "root").FirstOrDefault()
                 .Parent.FirstAttribute
                 .Value;
+
+
             return RootFolder;
 
         }
@@ -430,11 +467,153 @@ namespace JazzOSLCReqManager
         /// <summary>
         /// For testing purposes only
         /// </summary>
-        public void TestRequirementRequest()
+        public void TestRequirementRequest(string service)
         {
-            RequirementRequest req = new RequirementRequest(this.Server, "", "TestShapeUrl");
-            req.WriteXML(this.Namespaces);
+            /*RequirementRequest req = new RequirementRequest(this.Server, "", "TestShapeUrl");
+            req.WriteXML(this.Namespaces);*/
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
 
+            string queryCapabilityURI = this.getQueryCapability(service);
+
+            Encoding UTF8 = System.Text.Encoding.GetEncoding("UTF-8");
+
+            string oslcSearchByIdentifierQuery = queryCapabilityURI
+                 + "&oslc.prefix=" + "dcterms=<http://purl.org/dc/terms/>"+ ",nav=<http://jazz.net/ns/rm/navigation#>" + ",oslc=<http://open-services.net/ns/core#>"
+                 + "&oslc.select=" + "dcterms:title"
+                 + "&oslc.where=" + "nav:parent=<https://158.196.141.113/rm/folders/_V1-4kTBiEemz5KZyNE5MOQ>";
+
+            //string oslcSearchByIdentifierQuery = queryCapabilityURI;
+
+            string[] lhrs = oslcSearchByIdentifierQuery.Split('?');
+            string url = lhrs[0];
+            string body = lhrs[1];
+
+
+            StringContent stringContent = new StringContent(body, UTF8, "application/x-www-form-urlencoded");
+
+            HttpResponseMessage response = HttpUtils.sendPostForSecureDocument(url, this.Login, this.Password, this.HttpClient, stringContent);
+            string parrent = "http://jazz.net/ns/rm/navigation#";
+            string folder = "https://158.196.141.113/rm/folders/_V1-4kTBiEemz5KZyNE5MOQ";
+            Console.WriteLine(response.Content.ReadAsStringAsync().Result);
+            /*string req = "https://158.196.141.113/rm/resources/_dfmc8VRfEemJB4_OAAlcTQ"+ "?oslc.prefix=dcterms=http://purl.org/dc/terms/"+",nav="+parrent+"&oslc.properties=*"+"&oslc.where="+"nav:parent="+folder;
+            response = HttpUtils.sendGetForSecureDocument(req, this.Login, this.Password, this.HttpClient, this.JtsServer);
+            Console.WriteLine(response.Content.ReadAsStringAsync().Result);*/
+
+        }
+
+        public Dictionary<string,string> getFoldersContainingArtifacts(string serviceProvider)
+        {
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+
+            string queryCapabilityURI = this.getFolderQuery(serviceProvider);
+
+            HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(queryCapabilityURI, this.Login, this.Password, this.HttpClient, this.JtsServer);
+
+            XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+            response.Dispose();
+
+            string subfolders = xDoc.Descendants(Namespaces["nav"] + "subfolders").FirstOrDefault().Attributes().FirstOrDefault().Value;
+
+            response = HttpUtils.sendGetForSecureDocument(subfolders, this.Login, this.Password, this.HttpClient, this.JtsServer);
+            xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+            response.Dispose();
+
+            List<XElement> folderMembers = xDoc.Descendants(Namespaces["rdfs"] + "member").ToList();
+            Dictionary<string, string> ArtifactFolders = new Dictionary<string, string>();
+            foreach (var item in folderMembers)
+            {
+                string folderlink = item.Element(this.Namespaces["nav"] + "folder").Descendants(this.Namespaces["nav"] + "subfolders").FirstOrDefault().FirstAttribute.Value;
+
+                response = HttpUtils.sendGetForSecureDocument(folderlink, this.Login, this.Password, this.HttpClient, this.JtsServer);
+                xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+                string subfolderName = "";
+                string subfolderlink = "";
+                try
+                {
+                    subfolderName = xDoc.Descendants(this.Namespaces["rdfs"] + "member").FirstOrDefault()
+                    .Descendants(this.Namespaces["dcterms"] + "title").FirstOrDefault().Value;
+
+                    subfolderlink = xDoc.Descendants(this.Namespaces["rdfs"] + "member").FirstOrDefault()
+                    .Descendants(this.Namespaces["nav"] + "folder").FirstOrDefault().FirstAttribute.Value;
+                }
+                catch (Exception)
+                {
+
+                    Console.WriteLine("Title not found");
+                }
+                
+                if (subfolderlink.Length > 1)
+                    ArtifactFolders.Add(subfolderName, subfolderlink);
+
+
+            }
+
+            return ArtifactFolders;
+
+        }
+
+        public List<XElement> getRequirementsByFolder(string service, string folderURI)
+        {
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+            Console.WriteLine(folderURI);
+            string queryCapabilityURI = this.getQueryCapability(service);
+
+            Encoding UTF8 = System.Text.Encoding.GetEncoding("UTF-8");
+
+            string oslcSearchByIdentifierQuery = queryCapabilityURI
+                 + "&oslc.prefix=" + "dcterms=<http://purl.org/dc/terms/>" + ",nav=<http://jazz.net/ns/rm/navigation#>" + ",oslc=<http://open-services.net/ns/core#>"
+                 + "&oslc.select=" + "dcterms:title"
+                 + "&oslc.where=" + "nav:parent=<"+folderURI+">";
+
+            //string oslcSearchByIdentifierQuery = queryCapabilityURI;
+
+            string[] lhrs = oslcSearchByIdentifierQuery.Split('?');
+            string url = lhrs[0];
+            string body = lhrs[1];
+
+
+            StringContent stringContent = new StringContent(body, UTF8, "application/x-www-form-urlencoded");
+
+            HttpResponseMessage response = HttpUtils.sendPostForSecureDocument(url, this.Login, this.Password, this.HttpClient, stringContent);
+            XDocument xdoc =  XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+            Console.WriteLine(response.Content.ReadAsStringAsync().Result);
+            List<XElement> Requirements = xdoc.Descendants(this.Namespaces["oslc_rm2"] + "Requirement").ToList();
+
+            return Requirements;
+
+
+        }
+
+        public void testRequirement(string service,List<XElement> reqs)
+        {
+            XElement req = reqs[5];
+
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+
+
+            /*foreach (var req in reqs)
+            {
+                Console.WriteLine(req.Descendants(this.Namespaces["dcterms"] + "title").FirstOrDefault().Value);
+            }*/
+
+            string reqURI = req.FirstAttribute.Value;
+            
+
+            HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(reqURI, this.Login, this.Password, this.HttpClient, this.JtsServer);
+            Console.WriteLine(response.Content.ReadAsStringAsync().Result);
+
+            string testURI = "https://158.196.141.113/rm/resources/_9v54YVRbEemJB4_OAAlcTQ";
+
+            response = HttpUtils.sendGetForSecureDocument(testURI, this.Login, this.Password, this.HttpClient, this.JtsServer);
+            Console.WriteLine(response.Content.ReadAsStringAsync().Result);
         }
 
         

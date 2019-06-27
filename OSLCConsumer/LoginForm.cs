@@ -11,7 +11,7 @@ using JazzOSLCReqManager;
 
 namespace OSLCConsumer
 {
-    public partial class Form1 : Form
+    public partial class LoginForm : Form
     {
         private OSLCManager oslcManager;
         private string SERVER = "https://158.196.141.113/";
@@ -19,7 +19,7 @@ namespace OSLCConsumer
         private string PROJECT_AREA = "Test project";
         private string CATALOG_URI = null;
         private string SERVICE_PROVIDER_URI = null;
-        public Form1()
+        public LoginForm()
         {
             InitializeComponent();
         }

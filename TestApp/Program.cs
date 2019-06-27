@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+
 namespace TestApp
 {
     class Program
@@ -26,9 +28,18 @@ namespace TestApp
             }*/
 
             OSLCManager man = new OSLCManager("https://158.196.141.113/","","fhanslik","fhanslik",projectArea);
-            //string s = man.DiscoverRootFolder(projectArea);
+            
             string catalogUri = man.GetServiceProviderCatalog();
             string service = man.GetServiceProvider(catalogUri);
+            Dictionary<string,string> folders = man.getFoldersContainingArtifacts(service);
+            List<XElement> reqs =  man.getRequirementsByFolder(service, folders["SWRS artifacts"]);
+            man.testRequirement(service,reqs);
+
+
+
+
+            //man.TestRequirementRequest(service);
+            //string s = man.DiscoverRootFolder(service);
             //man.DiscoverRootFolder(service);
             //string query = man.getQueryCapability(service);
             //HttpResponseMessage queryResponse =  man.performQuery(query,"1075");
