@@ -35,6 +35,7 @@ namespace JazzOSLCReqManager.Datamodel
 	    static string RM_PARENT = "nav:parent";
 	    static string RM_JAZZ = "rm_jazz";  // New for RM 4.0.1 - Vocabulary Support
 
+
         
         internal RequirementRequest(string server, string uri, string shape)
         {

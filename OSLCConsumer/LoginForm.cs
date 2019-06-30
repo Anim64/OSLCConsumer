@@ -22,6 +22,8 @@ namespace OSLCConsumer
         public LoginForm()
         {
             InitializeComponent();
+            this.login_textbox.Text = "fhanslik";
+            this.password_textbox.Text = "fhanslik";
         }
 
         private void label1_Click(object sender, EventArgs e)
@@ -47,9 +49,14 @@ namespace OSLCConsumer
                     login_button.Enabled = true;
                 }
                 else { 
-                    login_warning_label.Text = "Login OK";
+                    login_warning_label.Text = "Login OK.. Loading folders";
                     login_warning_label.Visible = true;
                     login_button.Enabled = true;
+                    
+                    ShowRequirementsForm showrequirementsForm = new ShowRequirementsForm(oslcManager,CATALOG_URI,SERVICE_PROVIDER_URI,this);
+                    
+                    showrequirementsForm.Show();
+                    this.Hide();
                 }
 
             }

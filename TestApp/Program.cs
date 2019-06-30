@@ -33,7 +33,8 @@ namespace TestApp
             string service = man.GetServiceProvider(catalogUri);
             Dictionary<string,string> folders = man.getFoldersContainingArtifacts(service);
             List<XElement> reqs =  man.getRequirementsByFolder(service, folders["SWRS artifacts"]);
-            man.testRequirement(service,reqs);
+            List<Dictionary<string,string>> test =  man.GetBodyOfRequirements(service,reqs);
+
 
 
 

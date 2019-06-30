@@ -48,6 +48,7 @@ namespace JazzOSLCReqManager
             this.Namespaces.Add("dc", "http://purl.org/dc/terms/");
             this.Namespaces.Add("oslc_rm2", "http://open-services.net/ns/rm#");
             this.Namespaces.Add("j.0", "http://www.ibm.com/xmlns/rdm/types/");
+            this.Namespaces.Add("jazz_rm", "http://jazz.net/ns/rm#");
 
             ServicePointManager
                 .ServerCertificateValidationCallback +=
@@ -590,10 +591,10 @@ namespace JazzOSLCReqManager
 
         }
 
-        public void testRequirement(string service,List<XElement> reqs)
+        public List<Dictionary<string,string>> GetBodyOfRequirements(string service, List<XElement> reqs)
         {
-            XElement req = reqs[5];
-
+            //XElement req = reqs[5];
+            List<Dictionary<string, string>> requirementsProperties = new List<Dictionary<string, string>>();
             this.HttpClient.DefaultRequestHeaders.Clear();
             HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
             HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
@@ -604,23 +605,97 @@ namespace JazzOSLCReqManager
                 Console.WriteLine(req.Descendants(this.Namespaces["dcterms"] + "title").FirstOrDefault().Value);
             }*/
 
-            string reqURI = req.FirstAttribute.Value;
-            
 
-            HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(reqURI, this.Login, this.Password, this.HttpClient, this.JtsServer);
-            Console.WriteLine(response.Content.ReadAsStringAsync().Result);
 
-            string testURI = "https://158.196.141.113/rm/resources/_9v54YVRbEemJB4_OAAlcTQ";
 
-            response = HttpUtils.sendGetForSecureDocument(testURI, this.Login, this.Password, this.HttpClient, this.JtsServer);
-            Console.WriteLine(response.Content.ReadAsStringAsync().Result);
+            //var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            //foreach (var req in reqs)
+            //{
+            //    Dictionary<string, string> requirementProperties = new Dictionary<string, string>();
+
+
+            //    string reqURI = req.FirstAttribute.Value;
+
+
+            //    HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(reqURI, this.Login, this.Password, this.HttpClient, this.JtsServer);
+
+            //    XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+            //    string title = xDoc.Descendants(this.Namespaces["dcterms"] + "creator").FirstOrDefault().Parent.Descendants(this.Namespaces["dcterms"] + "title").FirstOrDefault().Value;
+            //    string created = xDoc.Descendants(this.Namespaces["dcterms"] + "created").FirstOrDefault().Value;
+            //    string creator = xDoc.Descendants(this.Namespaces["dcterms"] + "creator").FirstOrDefault().FirstAttribute.Value.Split('/').Last();
+            //    string id = xDoc.Descendants(this.Namespaces["dcterms"] + "identifier").FirstOrDefault().Value;
+            //    string description = xDoc.Descendants(this.Namespaces["jazz_rm"] + "primaryText").FirstOrDefault().Value;
+
+            //    DateTime date = Convert.ToDateTime(created);
+            //    Console.WriteLine(xDoc.Document.ToString());
+            //    requirementProperties.Add("title", title);
+            //    requirementProperties.Add("created", date.ToString());
+            //    requirementProperties.Add("creator", creator);
+            //    requirementProperties.Add("id", id);
+            //    requirementProperties.Add("description", description);
+
+            //    requirementsProperties.Add(requirementProperties);
+
+            //}
+
+
+            //////////////////////////////////////////////////////////////////
+
+            Parallel.ForEach(reqs, (req) =>
+             {
+                 Dictionary<string, string> requirementProperties = new Dictionary<string, string>();
+
+
+                 string reqURI = req.FirstAttribute.Value;
+
+
+                 HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(reqURI, this.Login, this.Password, this.HttpClient, this.JtsServer);
+                 try { 
+                 XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+                 string title = xDoc.Descendants(this.Namespaces["dcterms"] + "creator").FirstOrDefault().Parent.Descendants(this.Namespaces["dcterms"] + "title").FirstOrDefault().Value;
+                 string created = xDoc.Descendants(this.Namespaces["dcterms"] + "created").FirstOrDefault().Value;
+                 string modified = xDoc.Descendants(this.Namespaces["dcterms"] + "modified").FirstOrDefault().Value;
+                 string creator = xDoc.Descendants(this.Namespaces["dcterms"] + "creator").FirstOrDefault().FirstAttribute.Value.Split('/').Last();
+                 string id = xDoc.Descendants(this.Namespaces["dcterms"] + "identifier").FirstOrDefault().Value;
+                 string description = xDoc.Descendants(this.Namespaces["jazz_rm"] + "primaryText").FirstOrDefault().Value;
+
+                 DateTime date = Convert.ToDateTime(created);
+                 DateTime modified_date = Convert.ToDateTime(modified);
+
+                 Console.WriteLine(xDoc.Document.ToString());
+                 requirementProperties.Add("title", title);
+                 requirementProperties.Add("created", date.ToString());
+                 requirementProperties.Add("modified", modified_date.ToString());
+                 requirementProperties.Add("creator", creator);
+                 requirementProperties.Add("id", id);
+                 requirementProperties.Add("description", description);
+                 requirementProperties.Add("reqURI", reqURI);
+
+                     requirementsProperties.Add(requirementProperties);
+                 }catch(Exception e)
+                 {
+                     requirementProperties.Add("title", null);
+                     requirementProperties.Add("created", null);
+                     requirementProperties.Add("modified", null);
+                     requirementProperties.Add("creator", null);
+                     requirementProperties.Add("id", null);
+                     requirementProperties.Add("description", null);
+                     requirementProperties.Add("reqURI", null);
+                 }
+             });
+            /***************************************************/
+
+            return requirementsProperties;
+
+
         }
 
-        
 
 
 
 
-        
+
+
     }
 }
