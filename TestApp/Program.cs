@@ -32,8 +32,13 @@ namespace TestApp
             string catalogUri = man.GetServiceProviderCatalog();
             string service = man.GetServiceProvider(catalogUri);
             Dictionary<string,string> folders = man.getFoldersContainingArtifacts(service);
-            List<XElement> reqs =  man.getRequirementsByFolder(service, folders["SWRS artifacts"]);
-            List<Dictionary<string,string>> test =  man.GetBodyOfRequirements(service,reqs);
+            //List<XElement> reqs =  man.getRequirementsByFolder(service, folders["SYAR artifacts"]);
+            //List<Dictionary<string,string>> test =  man.GetBodyOfRequirements(service,reqs);
+            //XDocument x = man.CreateSnapshot(service, reqs,folders["SYAR artifacts"],"snapshots.xml");
+
+            man.LoadSnapshot("snapshots.xml", folders["SYAR artifacts"]);
+
+
 
 
 

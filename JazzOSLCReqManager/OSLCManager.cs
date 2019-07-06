@@ -12,6 +12,8 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Web;
+using System.IO;
+
 namespace JazzOSLCReqManager
 {
     public class OSLCManager
@@ -562,7 +564,7 @@ namespace JazzOSLCReqManager
             this.HttpClient.DefaultRequestHeaders.Clear();
             HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
             HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
-            Console.WriteLine(folderURI);
+            //Console.WriteLine(folderURI);
             string queryCapabilityURI = this.getQueryCapability(service);
 
             Encoding UTF8 = System.Text.Encoding.GetEncoding("UTF-8");
@@ -583,7 +585,7 @@ namespace JazzOSLCReqManager
 
             HttpResponseMessage response = HttpUtils.sendPostForSecureDocument(url, this.Login, this.Password, this.HttpClient, stringContent);
             XDocument xdoc =  XDocument.Parse(response.Content.ReadAsStringAsync().Result);
-            Console.WriteLine(response.Content.ReadAsStringAsync().Result);
+            //Console.WriteLine(response.Content.ReadAsStringAsync().Result);
             List<XElement> Requirements = xdoc.Descendants(this.Namespaces["oslc_rm2"] + "Requirement").ToList();
 
             return Requirements;
@@ -659,11 +661,12 @@ namespace JazzOSLCReqManager
                  string creator = xDoc.Descendants(this.Namespaces["dcterms"] + "creator").FirstOrDefault().FirstAttribute.Value.Split('/').Last();
                  string id = xDoc.Descendants(this.Namespaces["dcterms"] + "identifier").FirstOrDefault().Value;
                  string description = xDoc.Descendants(this.Namespaces["jazz_rm"] + "primaryText").FirstOrDefault().Value;
+                 string folder = xDoc.Descendants(this.Namespaces["nav"] + "parent").FirstOrDefault().FirstAttribute.Value;
 
                  DateTime date = Convert.ToDateTime(created);
                  DateTime modified_date = Convert.ToDateTime(modified);
 
-                 Console.WriteLine(xDoc.Document.ToString());
+                 //Console.WriteLine(xDoc.Document.ToString());
                  requirementProperties.Add("title", title);
                  requirementProperties.Add("created", date.ToString());
                  requirementProperties.Add("modified", modified_date.ToString());
@@ -671,8 +674,9 @@ namespace JazzOSLCReqManager
                  requirementProperties.Add("id", id);
                  requirementProperties.Add("description", description);
                  requirementProperties.Add("reqURI", reqURI);
+                 requirementProperties.Add("folder", folder);
 
-                     requirementsProperties.Add(requirementProperties);
+                 requirementsProperties.Add(requirementProperties);
                  }catch(Exception e)
                  {
                      requirementProperties.Add("title", null);
@@ -682,6 +686,7 @@ namespace JazzOSLCReqManager
                      requirementProperties.Add("id", null);
                      requirementProperties.Add("description", null);
                      requirementProperties.Add("reqURI", null);
+                     requirementProperties.Add("folder", null);
                  }
              });
             /***************************************************/
@@ -689,6 +694,95 @@ namespace JazzOSLCReqManager
             return requirementsProperties;
 
 
+        }
+
+        public XDocument CreateSnapshot(string service, List<XElement> reqs,string folder,string FileName)
+        {
+            List<Dictionary<string, string>> requirementsProperties = new List<Dictionary<string, string>>();
+            this.HttpClient.DefaultRequestHeaders.Clear();
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+            HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
+            XDocument xDocReqs = null;
+            if (File.Exists(FileName))
+            {
+               xDocReqs = XDocument.Load(FileName);
+            }
+            else { 
+                xDocReqs = new XDocument();
+                xDocReqs.Add(new XElement("Snapshots"));
+            }
+            string date = DateTime.Now.ToString();
+            Console.WriteLine(xDocReqs.Root);
+            XElement Snapshot = new XElement("Snapshot",new XAttribute("Date",date),new XAttribute("Folder",folder));
+            Parallel.ForEach(reqs, (req) =>
+            {
+                Dictionary<string, string> requirementProperties = new Dictionary<string, string>();
+
+
+                string reqURI = req.FirstAttribute.Value;
+
+
+                HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(reqURI, this.Login, this.Password, this.HttpClient, this.JtsServer);
+                try
+                {
+                    XElement Requirement = XElement.Parse(response.Content.ReadAsStringAsync().Result);
+                    Snapshot.Add(Requirement);
+                    //Console.WriteLine(xDoc.Document.ToString());
+                    //xDocReqs.Element("Snapshot").Add(x);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Fail");
+                }
+            });
+            xDocReqs.Root.Add(Snapshot);
+            xDocReqs.Save(FileName);
+            return xDocReqs;
+        }
+
+        public void LoadSnapshot(string filename,string folder = "all")
+        {
+
+            XDocument Snapshots_XML = XDocument.Load(filename);
+            List<XElement> Snapshots = Snapshots_XML.Descendants("Snapshot").Where(x => x.Attribute("Folder").Value.Equals(folder)).ToList();
+
+
+            if(Snapshots.Count > 1)
+            {
+                int i = 0;
+                while(i < Snapshots.Count)
+                {
+                    if (i == Snapshots.Count - 1)
+                        continue;
+                    for(int c = 0;c < Snapshots[i].Descendants(this.Namespaces["rdf"] + "RDF").ToList().Count; c++)
+                    {
+                        XElement req1 = Snapshots[i].Descendants(this.Namespaces["rdf"] + "RDF").ToList()[c];
+                        string id = req1.Descendants(this.Namespaces["dcterms"] + "identifier").FirstOrDefault().Value;
+                        XElement req2 = Snapshots[i + 1].Descendants(this.Namespaces["rdf"] + "RDF")
+                            .Where(x => x.Descendants(this.Namespaces["dcterms"] + "identifier").FirstOrDefault().Value == id).FirstOrDefault();
+                        if (req1.Descendants(this.Namespaces["dcterms"]+"modified").FirstOrDefault().Value == req2.Descendants(this.Namespaces["dcterms"] + "modified").FirstOrDefault().Value)
+                        {
+                            Console.WriteLine("ok");
+                        }
+                        else
+                        {
+                            Console.WriteLine(req1.ToString());
+                            Console.WriteLine(req2.ToString());
+                        }
+                    }
+
+
+
+
+
+
+                    i++;
+
+                }
+            }
+
+
+            Console.WriteLine("here");
         }
 
 
