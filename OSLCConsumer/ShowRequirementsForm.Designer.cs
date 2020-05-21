@@ -33,25 +33,28 @@
             this.informLabel = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.Requirements_listView = new System.Windows.Forms.ListView();
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.testlabel2 = new System.Windows.Forms.Label();
             this.RequirementDetail_panel = new System.Windows.Forms.Panel();
-            this.Title_label = new System.Windows.Forms.Label();
-            this.InfoLabel_description = new System.Windows.Forms.Label();
-            this.Description_textbox = new System.Windows.Forms.TextBox();
-            this.InfoLabel_ID = new System.Windows.Forms.Label();
-            this.InfoCreated_label = new System.Windows.Forms.Label();
-            this.InfoLabel_modified = new System.Windows.Forms.Label();
-            this.InfoLabel_creator = new System.Windows.Forms.Label();
-            this.ID_label = new System.Windows.Forms.Label();
-            this.Modified_label = new System.Windows.Forms.Label();
-            this.Created_label = new System.Windows.Forms.Label();
             this.Creator_label = new System.Windows.Forms.Label();
+            this.Created_label = new System.Windows.Forms.Label();
+            this.Modified_label = new System.Windows.Forms.Label();
+            this.ID_label = new System.Windows.Forms.Label();
+            this.InfoLabel_creator = new System.Windows.Forms.Label();
+            this.InfoLabel_modified = new System.Windows.Forms.Label();
+            this.InfoCreated_label = new System.Windows.Forms.Label();
+            this.InfoLabel_ID = new System.Windows.Forms.Label();
+            this.Description_textbox = new System.Windows.Forms.TextBox();
+            this.InfoLabel_description = new System.Windows.Forms.Label();
+            this.Title_label = new System.Windows.Forms.Label();
             this.Reload_artifacts_button = new System.Windows.Forms.Button();
+            this.Snapshot_btn = new System.Windows.Forms.Button();
+            this.snapshot_label = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.RequirementDetail_panel.SuspendLayout();
             this.SuspendLayout();
@@ -113,6 +116,10 @@
             this.Requirements_listView.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.Requirements_listView_ColumnClick);
             this.Requirements_listView.Click += new System.EventHandler(this.Requirements_listView_Click);
             // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Text = "Id";
+            // 
             // columnHeader2
             // 
             this.columnHeader2.Text = "Title";
@@ -131,10 +138,6 @@
             // columnHeader5
             // 
             this.columnHeader5.Text = "Creator";
-            // 
-            // columnHeader1
-            // 
-            this.columnHeader1.Text = "Id";
             // 
             // testlabel2
             // 
@@ -158,91 +161,19 @@
             this.RequirementDetail_panel.Controls.Add(this.Description_textbox);
             this.RequirementDetail_panel.Controls.Add(this.InfoLabel_description);
             this.RequirementDetail_panel.Controls.Add(this.Title_label);
-            this.RequirementDetail_panel.Location = new System.Drawing.Point(71, 311);
+            this.RequirementDetail_panel.Location = new System.Drawing.Point(204, 311);
             this.RequirementDetail_panel.Name = "RequirementDetail_panel";
-            this.RequirementDetail_panel.Size = new System.Drawing.Size(1109, 380);
+            this.RequirementDetail_panel.Size = new System.Drawing.Size(976, 380);
             this.RequirementDetail_panel.TabIndex = 5;
             // 
-            // Title_label
+            // Creator_label
             // 
-            this.Title_label.AutoSize = true;
-            this.Title_label.Location = new System.Drawing.Point(475, 17);
-            this.Title_label.Name = "Title_label";
-            this.Title_label.Size = new System.Drawing.Size(45, 17);
-            this.Title_label.TabIndex = 0;
-            this.Title_label.Text = "Name";
-            // 
-            // InfoLabel_description
-            // 
-            this.InfoLabel_description.AutoSize = true;
-            this.InfoLabel_description.Location = new System.Drawing.Point(3, 276);
-            this.InfoLabel_description.Name = "InfoLabel_description";
-            this.InfoLabel_description.Size = new System.Drawing.Size(87, 17);
-            this.InfoLabel_description.TabIndex = 1;
-            this.InfoLabel_description.Text = "Description :";
-            // 
-            // Description_textbox
-            // 
-            this.Description_textbox.Location = new System.Drawing.Point(97, 276);
-            this.Description_textbox.Multiline = true;
-            this.Description_textbox.Name = "Description_textbox";
-            this.Description_textbox.ReadOnly = true;
-            this.Description_textbox.Size = new System.Drawing.Size(181, 84);
-            this.Description_textbox.TabIndex = 2;
-            // 
-            // InfoLabel_ID
-            // 
-            this.InfoLabel_ID.AutoSize = true;
-            this.InfoLabel_ID.Location = new System.Drawing.Point(3, 70);
-            this.InfoLabel_ID.Name = "InfoLabel_ID";
-            this.InfoLabel_ID.Size = new System.Drawing.Size(27, 17);
-            this.InfoLabel_ID.TabIndex = 3;
-            this.InfoLabel_ID.Text = "Id :";
-            // 
-            // InfoCreated_label
-            // 
-            this.InfoCreated_label.AutoSize = true;
-            this.InfoCreated_label.Location = new System.Drawing.Point(3, 100);
-            this.InfoCreated_label.Name = "InfoCreated_label";
-            this.InfoCreated_label.Size = new System.Drawing.Size(70, 17);
-            this.InfoCreated_label.TabIndex = 4;
-            this.InfoCreated_label.Text = "Created : ";
-            // 
-            // InfoLabel_modified
-            // 
-            this.InfoLabel_modified.AutoSize = true;
-            this.InfoLabel_modified.Location = new System.Drawing.Point(3, 130);
-            this.InfoLabel_modified.Name = "InfoLabel_modified";
-            this.InfoLabel_modified.Size = new System.Drawing.Size(104, 17);
-            this.InfoLabel_modified.TabIndex = 5;
-            this.InfoLabel_modified.Text = "Last modified : ";
-            // 
-            // InfoLabel_creator
-            // 
-            this.InfoLabel_creator.AutoSize = true;
-            this.InfoLabel_creator.Location = new System.Drawing.Point(3, 160);
-            this.InfoLabel_creator.Name = "InfoLabel_creator";
-            this.InfoLabel_creator.Size = new System.Drawing.Size(63, 17);
-            this.InfoLabel_creator.TabIndex = 6;
-            this.InfoLabel_creator.Text = "Creator :";
-            // 
-            // ID_label
-            // 
-            this.ID_label.AutoSize = true;
-            this.ID_label.Location = new System.Drawing.Point(113, 70);
-            this.ID_label.Name = "ID_label";
-            this.ID_label.Size = new System.Drawing.Size(46, 17);
-            this.ID_label.TabIndex = 7;
-            this.ID_label.Text = "label2";
-            // 
-            // Modified_label
-            // 
-            this.Modified_label.AutoSize = true;
-            this.Modified_label.Location = new System.Drawing.Point(113, 130);
-            this.Modified_label.Name = "Modified_label";
-            this.Modified_label.Size = new System.Drawing.Size(46, 17);
-            this.Modified_label.TabIndex = 8;
-            this.Modified_label.Text = "label3";
+            this.Creator_label.AutoSize = true;
+            this.Creator_label.Location = new System.Drawing.Point(113, 160);
+            this.Creator_label.Name = "Creator_label";
+            this.Creator_label.Size = new System.Drawing.Size(46, 17);
+            this.Creator_label.TabIndex = 10;
+            this.Creator_label.Text = "label5";
             // 
             // Created_label
             // 
@@ -253,14 +184,86 @@
             this.Created_label.TabIndex = 9;
             this.Created_label.Text = "label4";
             // 
-            // Creator_label
+            // Modified_label
             // 
-            this.Creator_label.AutoSize = true;
-            this.Creator_label.Location = new System.Drawing.Point(113, 160);
-            this.Creator_label.Name = "Creator_label";
-            this.Creator_label.Size = new System.Drawing.Size(46, 17);
-            this.Creator_label.TabIndex = 10;
-            this.Creator_label.Text = "label5";
+            this.Modified_label.AutoSize = true;
+            this.Modified_label.Location = new System.Drawing.Point(113, 130);
+            this.Modified_label.Name = "Modified_label";
+            this.Modified_label.Size = new System.Drawing.Size(46, 17);
+            this.Modified_label.TabIndex = 8;
+            this.Modified_label.Text = "label3";
+            // 
+            // ID_label
+            // 
+            this.ID_label.AutoSize = true;
+            this.ID_label.Location = new System.Drawing.Point(113, 70);
+            this.ID_label.Name = "ID_label";
+            this.ID_label.Size = new System.Drawing.Size(46, 17);
+            this.ID_label.TabIndex = 7;
+            this.ID_label.Text = "label2";
+            // 
+            // InfoLabel_creator
+            // 
+            this.InfoLabel_creator.AutoSize = true;
+            this.InfoLabel_creator.Location = new System.Drawing.Point(3, 160);
+            this.InfoLabel_creator.Name = "InfoLabel_creator";
+            this.InfoLabel_creator.Size = new System.Drawing.Size(63, 17);
+            this.InfoLabel_creator.TabIndex = 6;
+            this.InfoLabel_creator.Text = "Creator :";
+            // 
+            // InfoLabel_modified
+            // 
+            this.InfoLabel_modified.AutoSize = true;
+            this.InfoLabel_modified.Location = new System.Drawing.Point(3, 130);
+            this.InfoLabel_modified.Name = "InfoLabel_modified";
+            this.InfoLabel_modified.Size = new System.Drawing.Size(104, 17);
+            this.InfoLabel_modified.TabIndex = 5;
+            this.InfoLabel_modified.Text = "Last modified : ";
+            // 
+            // InfoCreated_label
+            // 
+            this.InfoCreated_label.AutoSize = true;
+            this.InfoCreated_label.Location = new System.Drawing.Point(3, 100);
+            this.InfoCreated_label.Name = "InfoCreated_label";
+            this.InfoCreated_label.Size = new System.Drawing.Size(70, 17);
+            this.InfoCreated_label.TabIndex = 4;
+            this.InfoCreated_label.Text = "Created : ";
+            // 
+            // InfoLabel_ID
+            // 
+            this.InfoLabel_ID.AutoSize = true;
+            this.InfoLabel_ID.Location = new System.Drawing.Point(3, 70);
+            this.InfoLabel_ID.Name = "InfoLabel_ID";
+            this.InfoLabel_ID.Size = new System.Drawing.Size(27, 17);
+            this.InfoLabel_ID.TabIndex = 3;
+            this.InfoLabel_ID.Text = "Id :";
+            // 
+            // Description_textbox
+            // 
+            this.Description_textbox.Location = new System.Drawing.Point(97, 276);
+            this.Description_textbox.Multiline = true;
+            this.Description_textbox.Name = "Description_textbox";
+            this.Description_textbox.ReadOnly = true;
+            this.Description_textbox.Size = new System.Drawing.Size(181, 84);
+            this.Description_textbox.TabIndex = 2;
+            // 
+            // InfoLabel_description
+            // 
+            this.InfoLabel_description.AutoSize = true;
+            this.InfoLabel_description.Location = new System.Drawing.Point(3, 276);
+            this.InfoLabel_description.Name = "InfoLabel_description";
+            this.InfoLabel_description.Size = new System.Drawing.Size(87, 17);
+            this.InfoLabel_description.TabIndex = 1;
+            this.InfoLabel_description.Text = "Description :";
+            // 
+            // Title_label
+            // 
+            this.Title_label.AutoSize = true;
+            this.Title_label.Location = new System.Drawing.Point(475, 17);
+            this.Title_label.Name = "Title_label";
+            this.Title_label.Size = new System.Drawing.Size(45, 17);
+            this.Title_label.TabIndex = 0;
+            this.Title_label.Text = "Name";
             // 
             // Reload_artifacts_button
             // 
@@ -272,11 +275,42 @@
             this.Reload_artifacts_button.UseVisualStyleBackColor = true;
             this.Reload_artifacts_button.Click += new System.EventHandler(this.Reload_artifacts_button_Click);
             // 
+            // Snapshot_btn
+            // 
+            this.Snapshot_btn.Location = new System.Drawing.Point(35, 268);
+            this.Snapshot_btn.Name = "Snapshot_btn";
+            this.Snapshot_btn.Size = new System.Drawing.Size(160, 37);
+            this.Snapshot_btn.TabIndex = 7;
+            this.Snapshot_btn.Text = "Create Snapshot";
+            this.Snapshot_btn.UseVisualStyleBackColor = true;
+            this.Snapshot_btn.Click += new System.EventHandler(this.Snapshot_btn_Click);
+            // 
+            // snapshot_label
+            // 
+            this.snapshot_label.AutoSize = true;
+            this.snapshot_label.Location = new System.Drawing.Point(274, 293);
+            this.snapshot_label.Name = "snapshot_label";
+            this.snapshot_label.Size = new System.Drawing.Size(0, 17);
+            this.snapshot_label.TabIndex = 8;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(35, 428);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(160, 47);
+            this.button1.TabIndex = 9;
+            this.button1.Text = "Create Snaphost - whole project";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // ShowRequirementsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1252, 703);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.snapshot_label);
+            this.Controls.Add(this.Snapshot_btn);
             this.Controls.Add(this.Reload_artifacts_button);
             this.Controls.Add(this.RequirementDetail_panel);
             this.Controls.Add(this.testlabel2);
@@ -322,5 +356,8 @@
         private System.Windows.Forms.Label InfoCreated_label;
         private System.Windows.Forms.Label InfoLabel_ID;
         private System.Windows.Forms.Button Reload_artifacts_button;
+        private System.Windows.Forms.Button Snapshot_btn;
+        private System.Windows.Forms.Label snapshot_label;
+        private System.Windows.Forms.Button button1;
     }
 }

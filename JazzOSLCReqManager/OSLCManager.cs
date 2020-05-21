@@ -424,7 +424,6 @@ namespace JazzOSLCReqManager
             XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
             response.Dispose();
 
-
             Dictionary <string,string> projectAreas = xDoc.Descendants(Namespaces["dcterms"] + "title").ToDictionary(kv => kv.Value, kv => kv.Parent.FirstAttribute.Value);
             
             if(projectAreas == null)
@@ -566,13 +565,21 @@ namespace JazzOSLCReqManager
             HttpClient.DefaultRequestHeaders.Add("OSLC-Core-Version", "2.0");
             //Console.WriteLine(folderURI);
             string queryCapabilityURI = this.getQueryCapability(service);
-
+            string oslcSearchByIdentifierQuery = "";
             Encoding UTF8 = System.Text.Encoding.GetEncoding("UTF-8");
-
-            string oslcSearchByIdentifierQuery = queryCapabilityURI
+            if (folderURI.Equals("all"))
+            {
+                oslcSearchByIdentifierQuery = queryCapabilityURI
+                  + "&oslc.prefix=" + "dcterms=<http://purl.org/dc/terms/>" + ",nav=<http://jazz.net/ns/rm/navigation#>" + ",oslc=<http://open-services.net/ns/core#>"
+                  + "&oslc.select=" + "dcterms:title";
+                 
+            }
+            else { 
+                oslcSearchByIdentifierQuery = queryCapabilityURI
                  + "&oslc.prefix=" + "dcterms=<http://purl.org/dc/terms/>" + ",nav=<http://jazz.net/ns/rm/navigation#>" + ",oslc=<http://open-services.net/ns/core#>"
                  + "&oslc.select=" + "dcterms:title"
                  + "&oslc.where=" + "nav:parent=<"+folderURI+">";
+            }
 
             //string oslcSearchByIdentifierQuery = queryCapabilityURI;
 
@@ -587,7 +594,6 @@ namespace JazzOSLCReqManager
             XDocument xdoc =  XDocument.Parse(response.Content.ReadAsStringAsync().Result);
             //Console.WriteLine(response.Content.ReadAsStringAsync().Result);
             List<XElement> Requirements = xdoc.Descendants(this.Namespaces["oslc_rm2"] + "Requirement").ToList();
-
             return Requirements;
 
 
@@ -655,6 +661,7 @@ namespace JazzOSLCReqManager
                  HttpResponseMessage response = HttpUtils.sendGetForSecureDocument(reqURI, this.Login, this.Password, this.HttpClient, this.JtsServer);
                  try { 
                  XDocument xDoc = XDocument.Parse(response.Content.ReadAsStringAsync().Result);
+                     xDoc.Save("ReqSpecification.xml");
                  string title = xDoc.Descendants(this.Namespaces["dcterms"] + "creator").FirstOrDefault().Parent.Descendants(this.Namespaces["dcterms"] + "title").FirstOrDefault().Value;
                  string created = xDoc.Descendants(this.Namespaces["dcterms"] + "created").FirstOrDefault().Value;
                  string modified = xDoc.Descendants(this.Namespaces["dcterms"] + "modified").FirstOrDefault().Value;
@@ -782,7 +789,7 @@ namespace JazzOSLCReqManager
             }
 
 
-            Console.WriteLine("here");
+            
         }
 
 

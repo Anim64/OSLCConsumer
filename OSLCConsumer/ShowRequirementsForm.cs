@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using JazzOSLCReqManager;
 namespace OSLCConsumer
 {
@@ -18,7 +19,9 @@ namespace OSLCConsumer
         private Dictionary<string, List<Dictionary<string, string>>> reqFolders;
         Form caller;
         private string folderName = null;
-        
+        string FolderURI = "";
+
+
         public ShowRequirementsForm()
         {
             InitializeComponent();
@@ -52,13 +55,13 @@ namespace OSLCConsumer
 
         private void Artifact_foldersListbox_Click(object sender, EventArgs e)
         {
-            
+            snapshot_label.Text = "";
             this.Requirements_listView.Items.Clear();
             this.RequirementDetail_panel.Visible = false;
             int beg = this.Artifact_foldersListbox.SelectedItem.ToString().IndexOf(",")+1;
             int end = this.Artifact_foldersListbox.SelectedItem.ToString().Length - 1;
             this.folderName = this.Artifact_foldersListbox.SelectedItem.ToString().Substring(1, beg - 2);
-            string FolderURI = this.Artifact_foldersListbox.SelectedItem.ToString()
+            FolderURI = this.Artifact_foldersListbox.SelectedItem.ToString()
                 .Substring(beg, end - beg).Trim();
             informLabel.Text = "Loading Artifacts for folder : " + folderName;
             if (this.reqFolders[this.folderName] == null) { 
@@ -94,12 +97,14 @@ namespace OSLCConsumer
 
         private void Requirements_listView_ColumnClick(object sender, ColumnClickEventArgs e)
         {
+            snapshot_label.Text = "";
             this.reqFolders[this.folderName].OrderBy(p => p["id"]);
         }
 
 
         private void Requirements_listView_Click(object sender, EventArgs e)
         {
+            snapshot_label.Text = "";
             this.RequirementDetail_panel.Visible = true;
             var Requirement = this.reqFolders[folderName].Select(x => x)
                 .Where(x => x.Values.Contains(this.Requirements_listView.SelectedItems[0].Text))
@@ -115,8 +120,31 @@ namespace OSLCConsumer
 
         private void Reload_artifacts_button_Click(object sender, EventArgs e)
         {
+            snapshot_label.Text = "";
             this.reqFolders[folderName] = null;
             this.Artifact_foldersListbox_Click(sender, e);
+        }
+
+        private void Snapshot_btn_Click(object sender, EventArgs e)
+        {
+            this.Snapshot_btn.Enabled = false;
+            List<XElement> reqs = this.oslcManager.getRequirementsByFolder(SERVICE_PROVIDER_URI, FolderURI);
+            this.oslcManager.CreateSnapshot(SERVICE_PROVIDER_URI, reqs, folderName, "Snapshots.xml");
+            this.Snapshot_btn.Enabled = true;
+            snapshot_label.Text = "Snapshot for " + folderName + " Succesfully created";
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.Snapshot_btn.Enabled = false;
+            this.button1.Enabled = false;
+
+            List<XElement> reqs = this.oslcManager.getRequirementsByFolder(SERVICE_PROVIDER_URI, "all");
+            this.oslcManager.CreateSnapshot(SERVICE_PROVIDER_URI, reqs, "all", "Snapshots.xml");
+
+            snapshot_label.Text = "Snapshot for whole project Succesfully created";
+            this.Snapshot_btn.Enabled = true;
+            this.button1.Enabled = true;
         }
     }
 }
